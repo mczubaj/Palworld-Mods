@@ -1,0 +1,10 @@
+{
+  "Lua.diagnostics.globals": [
+    "RegisterHook"
+  ],
+  "Lua.diagnostics.disable": [
+    "undefined-field",
+    "undefined-global",
+    "undefined-doc-name"
+  ]
+}

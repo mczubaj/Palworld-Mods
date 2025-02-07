@@ -1,0 +1,48 @@
+{
+    "kits": [
+        {
+            "Id": "kit_beginner1",
+            "Name": "Beginner's Kit",
+            "Items": [
+                {
+                    "ItemId": "Stone",
+                    "Amount": 3
+                },
+                {
+                    "ItemId": "Wood",
+                    "Amount": 10
+                },
+                {
+                    "ItemId": "Pal_crystal_S",
+                    "Amount": 1
+                }
+            ]
+        },
+        {
+            "Id": "kit_adventurer1",
+            "Name": "Adventurer's Kit",
+            "Items": [
+                {
+                    "ItemId": "Wood",
+                    "Amount": 30
+                },
+                {
+                    "ItemId": "Cloth",
+                    "Amount": 2
+                },
+                {
+                    "ItemId": "Pal_crystal_S",
+                    "Amount": 10
+                },
+                {
+                    "ItemId": "PalEgg_Normal_01",
+                    "Amount": 1
+                },
+                {
+                    "ItemId": "Relic",
+                    "Amount": 5
+                }
+            ]
+        }
+    ]
+}
