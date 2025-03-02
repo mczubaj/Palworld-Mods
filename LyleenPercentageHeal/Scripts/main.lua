@@ -1,6 +1,4 @@
--- move these to config:
-local HEAL_PERCENTAGE_BY_RANK = { 20, 40, 55, 70, 85 }
-local HEAL_FLAT_VALUE_BY_RANK = { 0, 0, 0, 0, 0 }
+local config = require "config"
 
 local LYLEEN_PARTNER_SKILL_NAME = FName("Heal_LilyQueen")
 
@@ -20,7 +18,8 @@ local function handlePercentageHeals(Context)
 
     local spawnedPalRank = otomoHolder:TryGetSpawnedOtomo():GetCharacterParameterComponent():GetIndividualParameter()
         :GetRank()
-    local percentageHealAmount = (playerStats:GetMaxHP().Value / 1000) * (HEAL_PERCENTAGE_BY_RANK[spawnedPalRank] / 100)
+    local percentageHealAmount = (playerStats:GetMaxHP().Value / 1000) *
+        (config.HEAL_PERCENTAGE_PER_RANK[spawnedPalRank] / 100)
     -- add handling custom flat values
     local bestHealAmount = math.max(percentageHealAmount, skillParams.ActiveSkill_MainValueByRank[spawnedPalRank])
 
@@ -33,7 +32,3 @@ end
 RegisterHook("/Script/Engine.PlayerController:ClientRestart", handlePercentageHeals)
 
 RegisterHook("/Script/Engine.PlayerController:ServerAcknowledgePossession", handlePercentageHeals)
-
-
--- add the other hook besides ClientRestart
--- add gitignore to repo to include only my mods
