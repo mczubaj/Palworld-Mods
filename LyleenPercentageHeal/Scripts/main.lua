@@ -6,10 +6,8 @@ local LYLEEN_PARTNER_SKILL_NAME = FName("Heal_LilyQueen")
 
 local isHooked = false;
 
-RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(Context)
+local function handlePercentageHeals(Context)
   if isHooked then return end
-  print(
-    "======================**********************************========================= Not yet hooked, continuing ======================**********************************=========================")
 
   local palUtil = StaticFindObject("/Script/Pal.Default__PalUtility")
   local playerStats = palUtil:GetPlayerCharacter(Context:get()):GetCharacterParameterComponent()
@@ -22,10 +20,6 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(Context)
 
     local spawnedPalRank = otomoHolder:TryGetSpawnedOtomo():GetCharacterParameterComponent():GetIndividualParameter()
         :GetRank()
-    -- make sure maxhp doesn't get stale on subsequent runs of GetActiveSkillMainValueByRank
-    local playerMaxHP = playerStats:GetMaxHP().Value / 1000
-    print("playerMaxHP: ", playerMaxHP)
-
     local percentageHealAmount = (playerStats:GetMaxHP().Value / 1000) * (HEAL_PERCENTAGE_BY_RANK[spawnedPalRank] / 100)
     -- add handling custom flat values
     local bestHealAmount = math.max(percentageHealAmount, skillParams.ActiveSkill_MainValueByRank[spawnedPalRank])
@@ -34,7 +28,12 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(Context)
 
     return bestHealAmount
   end)
-end)
+end
+
+RegisterHook("/Script/Engine.PlayerController:ClientRestart", handlePercentageHeals)
+
+RegisterHook("/Script/Engine.PlayerController:ServerAcknowledgePossession", handlePercentageHeals)
+
 
 -- add the other hook besides ClientRestart
 -- add gitignore to repo to include only my mods
