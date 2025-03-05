@@ -1,0 +1,20 @@
+{
+    "json.schemas": [
+        {
+            "fileMatch": ["metadata.json"],
+            "url": "./schemas/metadata.schema.json"
+        },
+        {
+            "fileMatch": ["items/*.json"],
+            "url": "./schemas/items.schema.json"
+        },
+        {
+            "fileMatch": ["pals/*.json"],
+            "url": "./schemas/pals.schema.json"
+        },
+        {
+            "fileMatch": ["skins/*.json"],
+            "url": "./schemas/skins.schema.json"
+        }
+    ]
+}
