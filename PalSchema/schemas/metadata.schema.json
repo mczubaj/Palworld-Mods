@@ -1,0 +1,27 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Metadata Schema",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+            "default": "MyModName"
+        },
+        "authors": {
+            "type": "array",
+            "default": ["MyName"],
+            "uniqueItems": true,
+            "items": {
+                "type": "string"
+            }
+        },
+        "description": {
+            "type": "string"
+        },
+        "version": {
+            "type": "string",
+            "default": "1.0.0"
+        }
+    },
+    "required": ["name", "authors", "description", "version"]
+}

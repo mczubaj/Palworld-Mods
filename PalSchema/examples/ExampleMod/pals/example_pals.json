@@ -1,0 +1,109 @@
+{
+    "MyCustomPal": {
+        "IconAssetPath": "/Game/Pal/Texture/PalIcon/Normal/T_Anubis_icon_normal.T_Anubis_icon_normal",
+        "BlueprintAssetPath": "/Game/Pal/Blueprint/Character/Monster/PalActorBP/Anubis/BP_Anubis.BP_Anubis_C",
+        "Tribe": "None",
+        "BPClass": "Anubis",
+        "ZukanIndex": -1,
+        "ZukanIndexSuffix": "",
+        "Size": "M",
+        "Rarity": 10,
+        "ElementType1": "Dark",
+        "ElementType2": "None",
+        "GenusCategory": "Humanoid",
+        "Organization": "None",
+        "Weapon": "None",
+        "WeaponEquip": false,
+        "Hp": 120,
+        "MeleeAttack": 100,
+        "ShotAttack": 140,
+        "Defense": 100,
+        "Support": 100,
+        "CraftSpeed": 100,
+        "EnemyMaxHPRate": 1.0,
+        "EnemyReceiveDamageRate": 1.0,
+        "EnemyInflictDamageRate": 1.5,
+        "CaptureRateCorrect": 1.0,
+        "ExpRatio": 30.0,
+        "Price": 10000.0,
+        "StatusResistUpRate": 1.0,
+        "AIResponse": "Boss",
+        "AISightResponse": "None",
+        "SlowWalkSpeed": 3000,
+        "WalkSpeed": 3000,
+        "RunSpeed": 3000,
+        "RideSprintSpeed": 3000,
+        "TransportSpeed": 3000,
+        "IsBoss": false,
+        "IsTowerBoss": false,
+        "IsRaidBoss": false,
+        "UseBossHPGauge": true,
+        "BattleBGM": "Cute",
+        "IgnoreLeanBack": true,
+        "IgnoreBlowAway": true,
+        "MaxFullStomach": 150,
+        "FullStomachDecreaseRate": 1.0,
+        "FoodAmount": 2,
+        "ViewingDistance": 25,
+        "ViewingAngle": 90,
+        "HearingRate": 1.0,
+        "NooseTrap": false,
+        "Nocturnal": true,
+        "BiologicalGrade": 999,
+        "Predator": false,
+        "Edible": true,
+        "Stamina": 100,
+        "MaleProbability": 50,
+        "CombiRank": 9999,
+        "WorkSuitability_EmitFlame": 4,
+        "WorkSuitability_Watering": 0,
+        "WorkSuitability_Seeding": 0,
+        "WorkSuitability_GenerateElectricity": 0,
+        "WorkSuitability_Handcraft": 2,
+        "WorkSuitability_Collection": 0,
+        "WorkSuitability_Deforest": 0,
+        "WorkSuitability_Mining": 0,
+        "WorkSuitability_OilExtraction": 0,
+        "WorkSuitability_ProductMedicine": 0,
+        "WorkSuitability_Cool": 0,
+        "WorkSuitability_Transport": 2,
+        "WorkSuitability_MonsterFarm": 0,
+        "PassiveSkill1": "None",
+        "PassiveSkill2": "None",
+        "PassiveSkill3": "None",
+        "PassiveSkill4": "None",
+        "AbilitiesByLevel": [
+            {
+                "WazaID": "StoneShotgun",
+                "Level": 1
+            },
+            {
+                "WazaID": "SandTornado",
+                "Level": 2
+            }
+        ],
+        "Loot": [
+            {
+                "ItemId": "Wool",
+                "DropChance": 100.0,
+                "Min": 1,
+                "Max": 4
+            },
+            {
+                "ItemId": "Stone",
+                "DropChance": 100.0,
+                "Min": 5,
+                "Max": 10
+            },
+            {
+                "ItemId": "Accessory_CoolResist_1",
+                "DropChance": 50.0,
+                "Min": 1,
+                "Max": 1
+            }
+        ]
+    },
+    "PinkCat": {
+        "IconAssetPath": "/Game/Pal/Texture/PalIcon/Normal/T_Anubis_icon_normal.T_Anubis_icon_normal"
+    }
+}
