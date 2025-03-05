@@ -1,0 +1,15 @@
+{
+  "BP_BuildObject_WorkBench_SkillCard_C": {
+    "ItemConverterParameter": {
+      "TargetTypesA": [
+        "EPalItemTypeA::Accessory",
+        "EPalItemTypeA::Material"
+      ],
+      "TargetTypesB": [
+        "EPalItemTypeB::Accessory",
+        "EPalItemTypeB::MaterialJewelry"
+      ],
+      "TargetRankMax": 5
+    }
+  }
+}
