@@ -1,6 +1,7 @@
 {
   "DT_MapObjectMasterDataTable": {
     "WorkBench_SkillCard": {
+      "OverrideNameMsgID": "Accessory Workbench",
       "bInDevelop": false
     }
   },
