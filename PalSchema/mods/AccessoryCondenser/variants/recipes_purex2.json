@@ -243,7 +243,7 @@
       "Material2_Count": 0,
       "Material3_Id": "None",
       "Material3_Count": 0,
-      "Material4_Id": "Head004",
+      "Material4_Id": "AccessoryParts_HeatColdResist_1",
       "Material4_Count": 2,
       "Material5_Id": "None",
       "Material5_Count": 0,
@@ -264,7 +264,7 @@
       "Material2_Count": 0,
       "Material3_Id": "None",
       "Material3_Count": 0,
-      "Material4_Id": "Head004_2",
+      "Material4_Id": "AccessoryParts_HeatColdResist_2",
       "Material4_Count": 2,
       "Material5_Id": "None",
       "Material5_Count": 0,
@@ -337,7 +337,7 @@
       "Editor_RowNameHash": 0
     },
     "AccessoryParts_HeatColdResist_1": {
-      "Product_Id": "Head004",
+      "Product_Id": "AccessoryParts_HeatColdResist_1",
       "Product_Count": 1,
       "WorkAmount": 300.0,
       "WorkableAttribute": 1,
@@ -358,7 +358,7 @@
       "Editor_RowNameHash": 0
     },
     "AccessoryParts_HeatColdResist_2": {
-      "Product_Id": "Head004_2",
+      "Product_Id": "AccessoryParts_HeatColdResist_2",
       "Product_Count": 1,
       "WorkAmount": 800.0,
       "WorkableAttribute": 1,
