@@ -1,7 +1,7 @@
 {
   "AccessoryParts_AT_1": {
     "Type": "Generic",
-    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_Armor_Head001.T_itemicon_Armor_Head001",
+    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_AccessoryParts_AT.T_itemicon_AccessoryParts_AT",
     "TypeA": "EPalItemTypeA::Material",
     "TypeB": "EPalItemTypeB::MaterialJewelry",
     "Rank": 1,
@@ -14,7 +14,7 @@
   },
   "AccessoryParts_AT_2": {
     "Type": "Generic",
-    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_Armor_Head001.T_itemicon_Armor_Head001",
+    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_AccessoryParts_AT.T_itemicon_AccessoryParts_AT",
     "TypeA": "EPalItemTypeA::Material",
     "TypeB": "EPalItemTypeB::MaterialJewelry",
     "Rank": 1,
@@ -28,7 +28,7 @@
   },
   "AccessoryParts_defense_1": {
     "Type": "Generic",
-    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_Armor_Head002.T_itemicon_Armor_Head002",
+    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_AccessoryParts_defense.T_itemicon_AccessoryParts_defense",
     "TypeA": "EPalItemTypeA::Material",
     "TypeB": "EPalItemTypeB::MaterialJewelry",
     "Rank": 1,
@@ -41,7 +41,7 @@
   },
   "AccessoryParts_defense_2": {
     "Type": "Generic",
-    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_Armor_Head002.T_itemicon_Armor_Head002",
+    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_AccessoryParts_defense.T_itemicon_AccessoryParts_defense",
     "TypeA": "EPalItemTypeA::Material",
     "TypeB": "EPalItemTypeB::MaterialJewelry",
     "Rank": 1,
@@ -55,7 +55,7 @@
   },
   "AccessoryParts_HP_1": {
     "Type": "Generic",
-    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_Armor_Head003.T_itemicon_Armor_Head003",
+    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_AccessoryParts_HP.T_itemicon_AccessoryParts_HP",
     "TypeA": "EPalItemTypeA::Material",
     "TypeB": "EPalItemTypeB::MaterialJewelry",
     "Rank": 1,
@@ -68,7 +68,7 @@
   },
   "AccessoryParts_HP_2": {
     "Type": "Generic",
-    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_Armor_Head003.T_itemicon_Armor_Head003",
+    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_AccessoryParts_HP.T_itemicon_AccessoryParts_HP",
     "TypeA": "EPalItemTypeA::Material",
     "TypeB": "EPalItemTypeB::MaterialJewelry",
     "Rank": 1,
@@ -82,7 +82,7 @@
   },
   "AccessoryParts_HeatColdResist_1": {
     "Type": "Generic",
-    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_Armor_Head004.T_itemicon_Armor_Head004",
+    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_AccessoryParts_HeatColdResist.T_itemicon_AccessoryParts_HeatColdResist",
     "TypeA": "EPalItemTypeA::Material",
     "TypeB": "EPalItemTypeB::MaterialJewelry",
     "Rank": 1,
@@ -95,7 +95,7 @@
   },
   "AccessoryParts_HeatColdResist_2": {
     "Type": "Generic",
-    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_Armor_Head004.T_itemicon_Armor_Head004",
+    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_AccessoryParts_HeatColdResist.T_itemicon_AccessoryParts_HeatColdResist",
     "TypeA": "EPalItemTypeA::Material",
     "TypeB": "EPalItemTypeB::MaterialJewelry",
     "Rank": 1,
@@ -109,7 +109,7 @@
   },
   "AccessoryParts_CoolResist_1": {
     "Type": "Generic",
-    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_Armor_Head005.T_itemicon_Armor_Head005",
+    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_AccessoryParts_CoolResist.T_itemicon_AccessoryParts_CoolResist",
     "TypeA": "EPalItemTypeA::Material",
     "TypeB": "EPalItemTypeB::MaterialJewelry",
     "Rank": 1,
@@ -122,7 +122,7 @@
   },
   "AccessoryParts_CoolResist_2": {
     "Type": "Generic",
-    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_Armor_Head005.T_itemicon_Armor_Head005",
+    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_AccessoryParts_CoolResist.T_itemicon_AccessoryParts_CoolResist",
     "TypeA": "EPalItemTypeA::Material",
     "TypeB": "EPalItemTypeB::MaterialJewelry",
     "Rank": 1,
@@ -136,7 +136,7 @@
   },
   "AccessoryParts_CoolResist_3": {
     "Type": "Generic",
-    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_Armor_Head005.T_itemicon_Armor_Head005",
+    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_AccessoryParts_CoolResist.T_itemicon_AccessoryParts_CoolResist",
     "TypeA": "EPalItemTypeA::Material",
     "TypeB": "EPalItemTypeB::MaterialJewelry",
     "Rank": 1,
@@ -150,7 +150,7 @@
   },
   "AccessoryParts_HeatResist_1": {
     "Type": "Generic",
-    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_Armor_Head006.T_itemicon_Armor_Head006",
+    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_AccessoryParts_HeatResist.T_itemicon_AccessoryParts_HeatResist",
     "TypeA": "EPalItemTypeA::Material",
     "TypeB": "EPalItemTypeB::MaterialJewelry",
     "Rank": 1,
@@ -163,7 +163,7 @@
   },
   "AccessoryParts_HeatResist_2": {
     "Type": "Generic",
-    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_Armor_Head006.T_itemicon_Armor_Head006",
+    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_AccessoryParts_HeatResist.T_itemicon_AccessoryParts_HeatResist",
     "TypeA": "EPalItemTypeA::Material",
     "TypeB": "EPalItemTypeB::MaterialJewelry",
     "Rank": 1,
@@ -177,7 +177,7 @@
   },
   "AccessoryParts_HeatResist_3": {
     "Type": "Generic",
-    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_Armor_Head006.T_itemicon_Armor_Head006",
+    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_AccessoryParts_HeatResist.T_itemicon_AccessoryParts_HeatResist",
     "TypeA": "EPalItemTypeA::Material",
     "TypeB": "EPalItemTypeB::MaterialJewelry",
     "Rank": 1,
