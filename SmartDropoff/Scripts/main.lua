@@ -1,53 +1,96 @@
+local helpers = require("helpers")
 local config = require "config"
 
-RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(Context)
-  RegisterKeyBind(config.DROPOFF_HOTKEY, function()
-    print('Hotkey pressed')
-    local palUtility = StaticFindObject("/Script/Pal.Default__PalUtility")
-    -- local player = palUtility:GetPlayerCharacter(Context:get())
-    local player = FindFirstOf("PalPlayerCharacter")
+local hotkeyEnabled = false
 
-    -- Function to get local inventory data
-    -- local localInventoryData = PalUtility:GetLocalInventoryData(Context:get())
-    -- print("localInventoryData")
-    -- print(localInventoryData)
-    print("player")
-    print(player)
-    print(player:isValid())
-    print("player.PlayerState")
-    print(player.PlayerState)
-    print(player.PlayerState:isValid())
-    print("palUtility:GetPlayerStateByPlayer")
-    print(palUtility:GetPlayerStateByPlayer(player))
-    print(palUtility:GetPlayerStateByPlayer(player):isValid())
-    -- print(palUtility:GetPlayerStateByPlayer(player) == null)
-    local inventoryData = player.PlayerState:GetInventoryData()
-    -- local inventoryData = palUtility:GetPlayerStateByPlayer(player).GetInventoryData()
+-- Returns items from player's inventory and opened storage container
+local function GetItems(context, player)
+  ---@type TArray<UPalItemSlot>
+  local containerItems = context:GetItemContainerModule():GetContainer().ItemSlotArray
 
-    print("inventoryData")
-    print(inventoryData)
-    print(inventoryData:isValid())
+  local inventoryData = palUtility:GetPlayerState(player:get()):GetInventoryData()
+  -- magic numbers from EPalItemTypeA enum, importing the actual enum is not possible AFAIK
+  local itemTypes = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 }
+  local itemInfos = {}
+  inventoryData:GetItemInfoByItemTypeA(itemTypes, itemInfos)
 
-    -- Define the array with item type filter (Material in this case)
-    local itemTypes = { "Material" }
+  return containerItems, itemInfos
+end
 
-    -- Get item info by item type
-    local itemInfos = inventoryData:GetItemInfoByItemType(itemTypes[1])
+-- Returns items that are both in player's inventory and opened storage container
+local function GetMatches(containerItems, itemInfos)
+  local matched = {}
 
-    -- Iterate through itemInfos array
-    for index, item in ipairs(itemInfos) do
-      -- Extract item ID and count
-      local itemId = item.ItemId
-      local num = item.Num
+  local lookup = {}
+  for index = 1, #containerItems do
+    local staticId = containerItems[index]:GetItemId().StaticId:ToString()
+    lookup[staticId] = true
+  end
 
-      -- Extract static and dynamic IDs from the item
-      local staticId = item.PalItemId.StaticId
-      local dynamicId = item.PalItemId.DynamicId
+  for _, item in ipairs(itemInfos) do
+    ---@type FPalItemAndNum
+    local retrievedItem = item:get()
+    local staticId = retrievedItem.ItemId.StaticId:ToString()
 
-      -- Print debug information (Development only)
-      print("Item ID: " .. tostring(itemId) .. ", Count: " .. tostring(num) ..
-        ", Static ID: " .. tostring(staticId) .. ", Dynamic ID: " .. tostring(dynamicId))
+    if lookup[staticId] then
+      table.insert(matched, item)
     end
+  end
+
+  return matched
+end
+
+-- checks if widgets open to disable hotkey
+-- local AnyWidgetsOpen = false
+
+-- RegisterHook("/Script/UMG.UserWidget:Construct", function()
+--     AnyWidgetsOpen = true
+-- end)
+
+-- RegisterHook("/Script/UMG.UserWidget:Destruct", function()
+--     AnyWidgetsOpen = false
+-- end)
+
+-- RegisterKeyBind(Key.B, function()
+--     if AnyWidgetsOpen then return end
+--     print("Key 'B' hit, while no widgets are open.\n")
+-- end)
+
+RegisterHook("/Script/Engine.PlayerController:ClientRestart", function()
+  ---@class UPalUtility
+  palUtility = StaticFindObject("/Script/Pal.Default__PalUtility")
+
+  RegisterHook("/Script/Pal.PalMapObjectConcreteModelBase:OnTriggerInteract", function(Context, Player, InteractionType)
+    -- check if MapObject is a storage
+    -- maybe use a different context? (chest something, look in live view/watches) and test with all chest types
+
+    -- check InteractionType:get()? "Open" seems to be the only one suitable for storages
+
+    hotkeyEnabled = true
+
+    local matchedItems = GetMatches(GetItems(Context:get(), Player))
+
+    -- Print matched items
+    print("Matches length: " .. #matchedItems)
+    for _, item in ipairs(matchedItems) do
+      local retrievedItem = item:get()
+
+      print("Matched Static ID:", retrievedItem.ItemId.StaticId:ToString(), "; Count:", retrievedItem.Num)
+    end
+  end)
+
+  RegisterKeyBind(config.DROPOFF_HOTKEY, function()
+    if not hotkeyEnabled then
+      print("Hotkey disabled")
+      return
+    end
+
+    print('Hotkey triggered')
+
+    -- recalculate matchedItems
+    -- could be achieved by making related vars global? make sure they're refs and don't get stale
+    -- store items
+    -- cleanup related vars
   end)
 end
 )
