@@ -18,20 +18,19 @@ local function GetItems()
   ---@type TArray<UPalItemSlot>
   local containerItems = context:GetItemContainerModule():GetContainer().ItemSlotArray
 
-
   local inventoryData = palUtility:GetPlayerState(player):GetInventoryData()
   -- magic numbers from EPalItemTypeA enum, importing the actual enum is not possible AFAIK
   local itemTypes = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 }
-  local itemInfos = {}
+  local inventoryItemInfos = {}
   -- replace with UPalItemContainerMultiHelper.Containers[index].ItemSlotArray ?
-  inventoryData:GetItemInfoByItemTypeA(itemTypes, itemInfos)
+  inventoryData:GetItemInfoByItemTypeA(itemTypes, inventoryItemInfos)
 
-  return containerItems, itemInfos
+  return containerItems, inventoryItemInfos
 end
 
 -- Returns items that are both in player's inventory and opened storage container
 local function GetMatches()
-  local containerItems, itemInfos = GetItems()
+  local containerItems, inventoryItemInfos = GetItems()
 
   local matched = {}
 
@@ -41,7 +40,7 @@ local function GetMatches()
     lookup[staticId] = true
   end
 
-  for _, item in ipairs(itemInfos) do
+  for _, item in ipairs(inventoryItemInfos) do
     ---@type FPalItemAndNum
     local retrievedItem = item:get()
     local staticId = retrievedItem.ItemId.StaticId:ToString()
@@ -77,6 +76,7 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", function()
   RegisterHook("/Script/Pal.PalMapObjectConcreteModelBase:OnTriggerInteract", function(Context, Player, InteractionType)
     -- check if MapObject is a storage
     -- maybe use a different context? (chest something, look in live view/watches) and test with all chest types
+    -- ^ check with live view and watches
 
     -- check InteractionType:get()? "Open" seems to be the only one suitable for storages
 
@@ -113,6 +113,8 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", function()
     --   print("Matched Static ID:", retrievedItem.ItemId.StaticId:ToString(), "; Count:", retrievedItem.Num)
     -- end
 
+
+    -- TODO:
     -- store items
     -- cleanup related vars
   end)
