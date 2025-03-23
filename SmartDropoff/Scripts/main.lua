@@ -3,6 +3,13 @@ local config = require "config"
 
 local hotkeyEnabled = false
 
+-- UPalPlayerInventoryData:RequestFillSlotToTargetContainerFromInventory_ToServer
+
+-- UPalPlayerInventoryData:TryGetContainerFromInventoryType - get container shortcut?
+-- UPalItemContainerMultiHelper:FindByStaticItemIds - use to find container
+-- UPalItemContainerMultiHelper.Containers[index].ItemSlotArray direct modify
+-- GetContainer().ItemSlotArray direct modify
+
 -- Returns items from player's inventory and opened storage container
 local function GetItems()
   local context = OnTriggerInteractContext
@@ -11,10 +18,12 @@ local function GetItems()
   ---@type TArray<UPalItemSlot>
   local containerItems = context:GetItemContainerModule():GetContainer().ItemSlotArray
 
+
   local inventoryData = palUtility:GetPlayerState(player):GetInventoryData()
   -- magic numbers from EPalItemTypeA enum, importing the actual enum is not possible AFAIK
   local itemTypes = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 }
   local itemInfos = {}
+  -- replace with UPalItemContainerMultiHelper.Containers[index].ItemSlotArray ?
   inventoryData:GetItemInfoByItemTypeA(itemTypes, itemInfos)
 
   return containerItems, itemInfos
@@ -89,17 +98,21 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", function()
     print('Hotkey triggered')
 
     local matchedItems = GetMatches()
-
-    -- Print matched items
-    print("Matches length: " .. #matchedItems)
     for _, item in ipairs(matchedItems) do
       local retrievedItem = item:get()
 
       print("Matched Static ID:", retrievedItem.ItemId.StaticId:ToString(), "; Count:", retrievedItem.Num)
     end
 
-    -- recalculate matchedItems
-    -- could be achieved by making related vars global? make sure they're refs and don't get stale
+
+    -- Print matched items
+    -- print("Matches length: " .. #matchedItems)
+    -- for _, item in ipairs(matchedItems) do
+    --   local retrievedItem = item:get()
+
+    --   print("Matched Static ID:", retrievedItem.ItemId.StaticId:ToString(), "; Count:", retrievedItem.Num)
+    -- end
+
     -- store items
     -- cleanup related vars
   end)
