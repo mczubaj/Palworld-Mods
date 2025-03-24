@@ -3,24 +3,23 @@ local config = require "config"
 
 local hotkeyEnabled = false
 
--- UPalPlayerInventoryData:RequestFillSlotToTargetContainerFromInventory_ToServer
-
--- UPalPlayerInventoryData:TryGetContainerFromInventoryType - get container shortcut?
--- UPalItemContainerMultiHelper:FindByStaticItemIds - use to find container
--- UPalItemContainerMultiHelper.Containers[index].ItemSlotArray direct modify
--- GetContainer().ItemSlotArray direct modify
+---@type UPalMapObjectConcreteModelBase
+local onTriggerInteractContext
+---@type APlayerController
+local onTriggerInteractPlayer
+---@type UPalUtility
+local palUtility
 
 -- Returns items from player's inventory and opened storage container
 local function GetItems()
-  local context = OnTriggerInteractContext
-  local player = OnTriggerInteractPlayer
+  local context = onTriggerInteractContext
+  local player = onTriggerInteractPlayer
 
-  ---@type TArray<UPalItemSlot>
   local containerItems = context:GetItemContainerModule():GetContainer().ItemSlotArray
-
   local inventoryData = palUtility:GetPlayerState(player):GetInventoryData()
   -- magic numbers from EPalItemTypeA enum, importing the actual enum is not possible AFAIK
   local itemTypes = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 }
+  ---@type TArray<FPalItemAndNum>
   local inventoryItemInfos = {}
   -- replace with UPalItemContainerMultiHelper.Containers[index].ItemSlotArray ?
   inventoryData:GetItemInfoByItemTypeA(itemTypes, inventoryItemInfos)
@@ -41,7 +40,6 @@ local function GetMatches()
   end
 
   for _, item in ipairs(inventoryItemInfos) do
-    ---@type FPalItemAndNum
     local retrievedItem = item:get()
     local staticId = retrievedItem.ItemId.StaticId:ToString()
 
@@ -53,40 +51,18 @@ local function GetMatches()
   return matched
 end
 
--- checks if widgets open to disable hotkey
--- local AnyWidgetsOpen = false
-
--- RegisterHook("/Script/UMG.UserWidget:Construct", function()
---     AnyWidgetsOpen = true
--- end)
-
--- RegisterHook("/Script/UMG.UserWidget:Destruct", function()
---     AnyWidgetsOpen = false
--- end)
-
--- RegisterKeyBind(Key.B, function()
---     if AnyWidgetsOpen then return end
---     print("Key 'B' hit, while no widgets are open.\n")
--- end)
-
 RegisterHook("/Script/Engine.PlayerController:ClientRestart", function()
-  ---@class UPalUtility
+  ---@diagnostic disable-next-line: cast-local-type
   palUtility = StaticFindObject("/Script/Pal.Default__PalUtility")
 
   RegisterHook("/Script/Pal.PalMapObjectConcreteModelBase:OnTriggerInteract", function(Context, Player, InteractionType)
-    -- check if MapObject is a storage
-    -- maybe use a different context? (chest something, look in live view/watches) and test with all chest types
-    -- ^ check with live view and watches
-
-    -- check InteractionType:get()? "Open" seems to be the only one suitable for storages
-
     hotkeyEnabled = true
 
-    OnTriggerInteractContext = Context:get()
-    OnTriggerInteractPlayer = Player:get()
+    onTriggerInteractContext = Context:get()
+    onTriggerInteractPlayer = Player:get()
 
-    print("Stored globals: ", "OnTriggerInteractContext: ", OnTriggerInteractContext, ", OnTriggerInteractPlayer: ",
-      OnTriggerInteractPlayer)
+    print("Stored globals: ", "OnTriggerInteractContext: ", onTriggerInteractContext, ", OnTriggerInteractPlayer: ",
+      onTriggerInteractPlayer)
   end)
 
   RegisterKeyBind(config.DROPOFF_HOTKEY, function()
@@ -105,17 +81,21 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", function()
     end
 
 
-    -- Print matched items
-    -- print("Matches length: " .. #matchedItems)
-    -- for _, item in ipairs(matchedItems) do
-    --   local retrievedItem = item:get()
 
-    --   print("Matched Static ID:", retrievedItem.ItemId.StaticId:ToString(), "; Count:", retrievedItem.Num)
-    -- end
+
+
+
+    -- UPalPlayerInventoryData:RequestFillSlotToTargetContainerFromInventory_ToServer
+
+    -- UPalPlayerInventoryData:TryGetContainerFromInventoryType - get container shortcut?
+    -- UPalItemContainerMultiHelper:FindByStaticItemIds - use to find container
+    -- UPalItemContainerMultiHelper.Containers[index].ItemSlotArray direct modify
+    -- GetContainer().ItemSlotArray direct modify
+
+
 
 
     -- TODO:
-    -- store items
     -- cleanup related vars
   end)
 end
