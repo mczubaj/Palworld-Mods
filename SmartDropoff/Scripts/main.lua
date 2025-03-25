@@ -37,6 +37,7 @@ local function GetMatches()
     lookup[staticId] = true
   end
 
+  ---@type TArray<FPalItemAndNum>
   local matched = {}
   for _, item in ipairs(inventoryItemInfos) do
     local retrievedItem = item:get()
@@ -72,19 +73,36 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", function()
       -- "/Game/Pal/Blueprint/UI/CommonWidget/CommonScrollList/WBP_PalCommonScrollList.WBP_PalCommonScrollList_C:Construct"
 
       RegisterKeyBind(config.WIDGET_MOVE_HOTKEY, function()
+        if widget == nil then
+          print("Widget is nil")
+          return
+        end
+
         local player = onTriggerInteractPlayer
+        local storageContainerId = onTriggerInteractContext:GetItemContainerModule():GetContainerId()
+        local matchedItems = GetMatches()
+
+        local lookup = {}
+        for index = 1, #matchedItems do
+          local staticId = matchedItems[index]:get().ItemId.StaticId:ToString()
+          lookup[staticId] = true
+        end
+
         ---@type TArray<UPalItemContainer>
         local playerInvContainers = palUtility:GetPlayerState(player):GetInventoryData().InventoryMultiHelper.Containers
-
         -- //TODO: magic number
         -- maybe solve with UPalItemContainerMultiHelper:FindByStaticItemIds - use current inv contents to find container
         ---@type UPalItemContainer
         local playerInvContainer = playerInvContainers[1]
-        local playerInvSlot = playerInvContainer:Get(1)
 
-        local storageContainerId = onTriggerInteractContext:GetItemContainerModule():GetContainerId()
+        for index = 1, #playerInvContainer.ItemSlotArray do
+          local slot = playerInvContainer.ItemSlotArray[index]
+          local staticId = slot.ItemId.StaticId:ToString()
 
-        widget:MoveItem(1, playerInvSlot, storageContainerId)
+          if lookup[staticId] then
+            widget:MoveItem(1, slot, storageContainerId)
+          end
+        end
       end)
     end)
 
@@ -102,8 +120,6 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", function()
 
       print("Matched Static ID:", retrievedItem.ItemId.StaticId:ToString(), "; Count:", retrievedItem.Num)
     end
-
-    -- UPalPlayerInventoryData:TryGetContainerFromInventoryType - get container shortcut?
 
     -- direct modify:
     -- UPalItemContainerMultiHelper.Containers[index].ItemSlotArray
