@@ -14,37 +14,32 @@ local player
 ---@type UPalCommonScrollListBase
 local playerInventoryWidget
 
--- Returns items from player's inventory and opened storage container
-local function GetItems()
+-- Returns items that exist both in player's inventory and the target storage container
+local function GetMatches()
   local containerItems = targetStorageContainer:GetItemContainerModule():GetContainer().ItemSlotArray
+
+  local containerMatchLookup = {}
+  for index = 1, #containerItems do
+    local staticId = containerItems[index]:GetItemId().StaticId:ToString()
+    containerMatchLookup[staticId] = true
+  end
+
   local inventoryData = palUtility:GetPlayerState(player):GetInventoryData()
-  -- magic numbers from EPalItemTypeA enum, importing the actual enum is not possible AFAIK
+  ---@type TArray<EPalItemTypeA>
   local itemTypes = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 }
   ---@type TArray<FPalItemAndNum>
   local inventoryItemInfos = {}
   -- //TODO: replace with UPalItemContainerMultiHelper.Containers[index].ItemSlotArray ?
   inventoryData:GetItemInfoByItemTypeA(itemTypes, inventoryItemInfos)
 
-  return containerItems, inventoryItemInfos
-end
-
--- Returns items that are both in player's inventory and opened storage container
-local function GetMatches()
-  local containerItems, inventoryItemInfos = GetItems()
-
-  local lookup = {}
-  for index = 1, #containerItems do
-    local staticId = containerItems[index]:GetItemId().StaticId:ToString()
-    lookup[staticId] = true
-  end
-
   ---@type TArray<FPalItemAndNum>
   local matched = {}
   for _, item in ipairs(inventoryItemInfos) do
+    ---@type FPalItemAndNum
     local retrievedItem = item:get()
     local staticId = retrievedItem.ItemId.StaticId:ToString()
 
-    if lookup[staticId] then
+    if containerMatchLookup[staticId] then
       table.insert(matched, item)
     end
   end
@@ -52,10 +47,15 @@ local function GetMatches()
   return matched
 end
 
-local function StoreItems(playerInventorySlots, storageContainerId, playerInventoryWidget)
-  for index = 1, #playerInventorySlots do
-    playerInventoryWidget:MoveItem(1, playerInventorySlots[index], storageContainerId)
-  end
+local function GetContainerParams()
+  local storageContainerId = targetStorageContainer:GetItemContainerModule():GetContainerId()
+
+  local playerInventoryContainers = palUtility:GetPlayerState(player):GetInventoryData().InventoryMultiHelper.Containers
+  -- //TODO: magic number
+  -- maybe solve with UPalItemContainerMultiHelper:FindByStaticItemIds - use current inv contents to find container
+  local playerInventorySlots = playerInventoryContainers[1].ItemSlotArray
+
+  return storageContainerId, playerInventorySlots
 end
 
 local function StoreSmart()
@@ -67,15 +67,10 @@ local function StoreSmart()
     lookup[staticId] = true
   end
 
-  local storageContainerId = targetStorageContainer:GetItemContainerModule():GetContainerId()
-  ---@type TArray<UPalItemContainer>
-  local playerInvContainers = palUtility:GetPlayerState(player):GetInventoryData().InventoryMultiHelper.Containers
-  -- //TODO: magic number
-  -- maybe solve with UPalItemContainerMultiHelper:FindByStaticItemIds - use current inv contents to find container
-  local playerInvContainer = playerInvContainers[1]
+  local storageContainerId, playerInventorySlots = GetContainerParams()
 
-  for index = 1, #playerInvContainer.ItemSlotArray do
-    local slot = playerInvContainer.ItemSlotArray[index]
+  for index = 1, #playerInventorySlots do
+    local slot = playerInventorySlots[index]
     local staticId = slot.ItemId.StaticId:ToString()
 
     if lookup[staticId] then
@@ -85,13 +80,11 @@ local function StoreSmart()
 end
 
 local function StoreAll()
-  local storageContainerId = targetStorageContainer:GetItemContainerModule():GetContainerId()
-  local playerInvContainers = palUtility:GetPlayerState(player):GetInventoryData().InventoryMultiHelper.Containers
-  -- //TODO: magic number
-  -- maybe solve with UPalItemContainerMultiHelper:FindByStaticItemIds - use current inv contents to find container
-  local playerInvContainer = playerInvContainers[1]
+  local storageContainerId, playerInventorySlots = GetContainerParams()
 
-  StoreItems(playerInvContainer.ItemSlotArray, storageContainerId, playerInventoryWidget)
+  for index = 1, #playerInventorySlots do
+    playerInventoryWidget:MoveItem(1, playerInventorySlots[index], storageContainerId)
+  end
 end
 
 local function Cleanup()
