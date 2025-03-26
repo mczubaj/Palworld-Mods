@@ -49,14 +49,14 @@ local function GetMatches()
 end
 
 local function GetContainerParams()
-  local storageContainerId = targetStorageContainer:GetItemContainerModule():GetContainerId()
+  local targetStorageContainerId = targetStorageContainer:GetItemContainerModule():GetContainerId()
 
   local playerInventoryContainers = palUtility:GetPlayerState(player):GetInventoryData().InventoryMultiHelper.Containers
   -- //TODO: magic number
   -- maybe solve with UPalItemContainerMultiHelper:FindByStaticItemIds - use current inv contents to find container
   local playerInventorySlots = playerInventoryContainers[1].ItemSlotArray
 
-  return storageContainerId, playerInventorySlots
+  return targetStorageContainerId, playerInventorySlots
 end
 
 local function StoreSmart()
@@ -68,23 +68,23 @@ local function StoreSmart()
     lookup[staticId] = true
   end
 
-  local storageContainerId, playerInventorySlots = GetContainerParams()
+  local targetStorageContainerId, playerInventorySlots = GetContainerParams()
 
   for index = 1, #playerInventorySlots do
     local slot = playerInventorySlots[index]
     local staticId = slot.ItemId.StaticId:ToString()
 
     if lookup[staticId] then
-      playerInventoryWidget:MoveItem(1, slot, storageContainerId)
+      playerInventoryWidget:MoveItem(1, slot, targetStorageContainerId)
     end
   end
 end
 
 local function StoreAll()
-  local storageContainerId, playerInventorySlots = GetContainerParams()
+  local targetStorageContainerId, playerInventorySlots = GetContainerParams()
 
   for index = 1, #playerInventorySlots do
-    playerInventoryWidget:MoveItem(1, playerInventorySlots[index], storageContainerId)
+    playerInventoryWidget:MoveItem(1, playerInventorySlots[index], targetStorageContainerId)
   end
 end
 
