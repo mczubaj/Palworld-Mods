@@ -1,21 +1,22 @@
 local helpers = require("helpers")
 local config = require "config"
 
-local hotkeyEnabled = false
+local isHooked = false
+local hotkeysEnabled = false
 
----@type UPalMapObjectConcreteModelBase
-local onTriggerInteractContext
----@type APlayerController
-local onTriggerInteractPlayer
 ---@type UPalUtility
 local palUtility
 
+---@type UPalMapObjectConcreteModelBase
+local container
+---@type APlayerController
+local player
+---@type UPalCommonScrollListBase
+local widget
+
 -- Returns items from player's inventory and opened storage container
 local function GetItems()
-  local context = onTriggerInteractContext
-  local player = onTriggerInteractPlayer
-
-  local containerItems = context:GetItemContainerModule():GetContainer().ItemSlotArray
+  local containerItems = container:GetItemContainerModule():GetContainer().ItemSlotArray
   local inventoryData = palUtility:GetPlayerState(player):GetInventoryData()
   -- magic numbers from EPalItemTypeA enum, importing the actual enum is not possible AFAIK
   local itemTypes = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 }
@@ -57,84 +58,104 @@ local function StoreItems(playerInventorySlots, storageContainerId, widget)
   end
 end
 
-RegisterHook("/Script/Engine.PlayerController:ClientRestart", function()
+local function Cleanup()
+  ---@diagnostic disable: cast-local-type
+  container = nil
+  widget = nil
+  ---@diagnostic enable: cast-local-type
+
+  hotkeysEnabled = false
+end
+
+local function StoreAll()
+  local storageContainerId = container:GetItemContainerModule():GetContainerId()
+  local playerInvContainers = palUtility:GetPlayerState(player):GetInventoryData().InventoryMultiHelper.Containers
+  -- //TODO: magic number
+  -- maybe solve with UPalItemContainerMultiHelper:FindByStaticItemIds - use current inv contents to find container
+  local playerInvContainer = playerInvContainers[1]
+
+  StoreItems(playerInvContainer.ItemSlotArray, storageContainerId, widget)
+end
+
+RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(PlayerController)
+  if isHooked then return end
+  isHooked = true
+
   ---@type UPalUtility
   ---@diagnostic disable-next-line: assign-type-mismatch
   palUtility = StaticFindObject("/Script/Pal.Default__PalUtility")
+  ---@type APlayerController
+  player = PlayerController:get().Pawn
 
-  RegisterHook("/Script/Pal.PalMapObjectConcreteModelBase:OnTriggerInteract", function(Context, Player, InteractionType)
-    hotkeyEnabled = true
+  RegisterHook("/Script/Pal.PalMapObjectConcreteModelBase:OnTriggerInteract",
+    function(Container, _, InteractionType)
+      print("Container interact triggered")
 
-    onTriggerInteractContext = Context:get()
-    onTriggerInteractPlayer = Player:get()
+      container = Container:get()
+
+      RegisterHook(
+        "/Game/Pal/Blueprint/UI/Inventory/WBP_PalPlayerInventoryScrollList.WBP_PalPlayerInventoryScrollList_C:Construct",
+        function(Widget)
+          print("Widget construct triggered")
+
+          widget = Widget:get()
+          hotkeysEnabled = true
+        end)
+
+      RegisterHook(
+        "/Game/Pal/Blueprint/UI/MapObject/ItemChest/WBP_ItemChest.WBP_ItemChest_C:Destruct",
+        function()
+          print("Widget destruct triggered")
+
+          Cleanup()
+        end)
+    end)
+
+  RegisterKeyBind(config.SMART_DROPOFF_HOTKEY, function()
+    if not hotkeysEnabled then
+      palUtility:SendSystemAnnounce(player, "Smart dropoff hotkey disabled!")
+      print("Smart dropoff hotkey disabled")
+      return
+    end
+
+    print("Smart dropoff hotkey pressed")
+    palUtility:SendSystemAnnounce(player, "Smart dropoff hotkey pressed!")
+
+    local matchedItems = GetMatches()
+
+    local lookup = {}
+    for index = 1, #matchedItems do
+      local staticId = matchedItems[index]:get().ItemId.StaticId:ToString()
+      lookup[staticId] = true
+    end
+
+    local storageContainerId = container:GetItemContainerModule():GetContainerId()
+    ---@type TArray<UPalItemContainer>
+    local playerInvContainers = palUtility:GetPlayerState(player):GetInventoryData().InventoryMultiHelper.Containers
+    -- //TODO: magic number
+    -- maybe solve with UPalItemContainerMultiHelper:FindByStaticItemIds - use current inv contents to find container
+    local playerInvContainer = playerInvContainers[1]
+
+    for index = 1, #playerInvContainer.ItemSlotArray do
+      local slot = playerInvContainer.ItemSlotArray[index]
+      local staticId = slot.ItemId.StaticId:ToString()
+
+      if lookup[staticId] then
+        widget:MoveItem(1, slot, storageContainerId)
+      end
+    end
   end)
 
-  -- modify using widget:
-  RegisterHook(
-    "/Game/Pal/Blueprint/UI/Inventory/WBP_PalPlayerInventoryScrollList.WBP_PalPlayerInventoryScrollList_C:Construct",
-    function(WidgetContext)
-      print("Widget construct triggered")
-      ---@type UPalCommonScrollListBase
-      local widget = WidgetContext:get()
-      -- WBP_PalItemScrollList_C /Engine/Transient.PalGameEngine_2147482595:BP_PalGameInstance_C_2147482520.WBP_PalOverallUILayout_C_2147482201.WidgetTree_2147482200.WBP_ItemChest_C_2147010652.WidgetTree_2147010651.WBP_IngameMenu_Chest.WidgetTree_2147010650.WBP_PalItemScrollList
-      -- "/Game/Pal/Blueprint/UI/CommonWidget/CommonScrollList/WBP_PalCommonScrollList.WBP_PalCommonScrollList_C:Construct"
+  RegisterKeyBind(config.ALL_DROPOFF_HOTKEY, function()
+    if not hotkeysEnabled then
+      palUtility:SendSystemAnnounce(player, "Store all hotkey disabled!")
+      print("Store all hotkey disabled")
+      return
+    end
 
-      RegisterKeyBind(config.SMART_DROPOFF_HOTKEY, function()
-        if widget == nil then
-          print("Widget is nil")
-          return
-        end
+    print("Store all hotkey pressed")
+    palUtility:SendSystemAnnounce(player, "Store all hotkey pressed!")
 
-        local player = onTriggerInteractPlayer
-        local storageContainerId = onTriggerInteractContext:GetItemContainerModule():GetContainerId()
-        local matchedItems = GetMatches()
-
-        palUtility:SendSystemAnnounce(player, "Smart dropoff hotkey pressed")
-
-        local lookup = {}
-        for index = 1, #matchedItems do
-          local staticId = matchedItems[index]:get().ItemId.StaticId:ToString()
-          lookup[staticId] = true
-        end
-
-        ---@type TArray<UPalItemContainer>
-        local playerInvContainers = palUtility:GetPlayerState(player):GetInventoryData().InventoryMultiHelper.Containers
-        -- //TODO: magic number
-        -- maybe solve with UPalItemContainerMultiHelper:FindByStaticItemIds - use current inv contents to find container
-        local playerInvContainer = playerInvContainers[1]
-
-        for index = 1, #playerInvContainer.ItemSlotArray do
-          local slot = playerInvContainer.ItemSlotArray[index]
-          local staticId = slot.ItemId.StaticId:ToString()
-
-          if lookup[staticId] then
-            widget:MoveItem(1, slot, storageContainerId)
-          end
-        end
-      end)
-
-      RegisterKeyBind(config.ALL_DROPOFF_HOTKEY, function()
-        if not hotkeyEnabled then
-          print("All dropoff hotkey disabled")
-          return
-        end
-
-        local player = onTriggerInteractPlayer
-        palUtility:SendSystemAnnounce(player, "Store all hotkey pressed")
-
-        local storageContainerId = onTriggerInteractContext:GetItemContainerModule():GetContainerId()
-        ---@type TArray<UPalItemContainer>
-        local playerInvContainers = palUtility:GetPlayerState(player):GetInventoryData().InventoryMultiHelper.Containers
-        -- //TODO: magic number
-        -- maybe solve with UPalItemContainerMultiHelper:FindByStaticItemIds - use current inv contents to find container
-        local playerInvContainer = playerInvContainers[1]
-
-        StoreItems(playerInvContainer.ItemSlotArray, storageContainerId, widget)
-
-        -- direct modify:
-        -- UPalItemContainerMultiHelper.Containers[index].ItemSlotArray
-        -- GetContainer().ItemSlotArray
-      end)
-    end)
-end
-)
+    StoreAll()
+  end)
+end)
