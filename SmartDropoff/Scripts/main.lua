@@ -2,7 +2,8 @@ local helpers = require("helpers")
 local config = require "config"
 
 local isHooked = false
-local hotkeysEnabled = false
+local isWidgetsHooked = false
+local isHotkeysEnabled = false
 
 ---@type UPalUtility
 local palUtility
@@ -93,7 +94,7 @@ local function Cleanup()
   playerInventoryWidget = nil
   ---@diagnostic enable: cast-local-type
 
-  hotkeysEnabled = false
+  isHotkeysEnabled = false
 end
 
 RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(PlayerController)
@@ -112,13 +113,16 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(PlayerCon
 
       targetStorageContainer = TargetStorageContainer:get()
 
+      if isWidgetsHooked then return end
+      isWidgetsHooked = true
+
       RegisterHook(
         "/Game/Pal/Blueprint/UI/Inventory/WBP_PalPlayerInventoryScrollList.WBP_PalPlayerInventoryScrollList_C:Construct",
         function(PlayerInventoryWidget)
           print("Widget construct triggered")
 
           playerInventoryWidget = PlayerInventoryWidget:get()
-          hotkeysEnabled = true
+          isHotkeysEnabled = true
         end)
 
       RegisterHook(
@@ -131,7 +135,7 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(PlayerCon
     end)
 
   RegisterKeyBind(config.SMART_DROPOFF_HOTKEY, function()
-    if not hotkeysEnabled then
+    if not isHotkeysEnabled then
       palUtility:SendSystemAnnounce(player, "Smart dropoff hotkey disabled!")
       print("Smart dropoff hotkey disabled")
       return
@@ -144,7 +148,7 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(PlayerCon
   end)
 
   RegisterKeyBind(config.ALL_DROPOFF_HOTKEY, function()
-    if not hotkeysEnabled then
+    if not isHotkeysEnabled then
       palUtility:SendSystemAnnounce(player, "Store all hotkey disabled!")
       print("Store all hotkey disabled")
       return
