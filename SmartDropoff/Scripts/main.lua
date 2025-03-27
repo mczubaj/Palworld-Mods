@@ -18,10 +18,10 @@ local playerInventoryWidget
 local function GetContainerParams()
   local targetStorageContainerId = targetStorageContainerModule:GetContainerId()
   local targetStorageContainerSlots = targetStorageContainerModule:GetContainer().ItemSlotArray
-
-  local playerInventoryContainers = palUtility:GetPlayerState(player):GetInventoryData().InventoryMultiHelper.Containers
+  -- //TODO: get EPalPlayerInventoryType from UPalPlayerInventoryData:GetInventoryTypeFromStaticItemID(const FName& StaticItemId)
   -- index is a magic number from EPalPlayerInventoryType - at the time of writing, the type we want is "Common"
-  local playerInventorySlots = playerInventoryContainers[1].ItemSlotArray
+  local playerInventorySlots = palUtility:GetPlayerState(player):GetInventoryData().InventoryMultiHelper.Containers[1]
+      .ItemSlotArray
 
   return playerInventorySlots, targetStorageContainerId, targetStorageContainerSlots
 end
@@ -72,7 +72,7 @@ local function Cleanup()
   isHotkeysEnabled = false
 end
 
-RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(PlayerController)
+local function HandleModLogic(PlayerController)
   if isHooked then return end
   isHooked = true
 
@@ -120,4 +120,8 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(PlayerCon
 
     StoreAll()
   end)
-end)
+end
+
+RegisterHook("/Script/Engine.PlayerController:ClientRestart", HandleModLogic)
+
+RegisterHook("/Script/Engine.PlayerController:ServerAcknowledgePossession", HandleModLogic)
