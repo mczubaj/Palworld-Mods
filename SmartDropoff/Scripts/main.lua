@@ -18,7 +18,6 @@ local playerInventoryWidget
 local function GetContainerParams()
   local targetStorageContainerId = targetStorageContainerModule:GetContainerId()
   local targetStorageContainerSlots = targetStorageContainerModule:GetContainer().ItemSlotArray
-  -- //TODO: get EPalPlayerInventoryType from UPalPlayerInventoryData:GetInventoryTypeFromStaticItemID(const FName& StaticItemId)
   -- index is a magic number from EPalPlayerInventoryType - at the time of writing, the type we want is "Common"
   local playerInventorySlots = palUtility:GetPlayerState(player):GetInventoryData().InventoryMultiHelper.Containers[1]
       .ItemSlotArray
@@ -55,11 +54,13 @@ end
 
 local function CheckIsHotkeysEnabled(hotkeyType)
   if not isHotkeysEnabled then
-    palUtility:SendSystemAnnounce(player, hotkeyType + " hotkey is disabled!")
-    print(hotkeyType + " hotkey is disabled!")
+    palUtility:SendSystemAnnounce(player, hotkeyType .. " hotkey is disabled!")
+    print(hotkeyType .. " hotkey is disabled!")
     return false
   end
 
+  palUtility:SendSystemAnnounce(player, hotkeyType .. " pressed!")
+  print(hotkeyType .. " pressed!")
   return true
 end
 
