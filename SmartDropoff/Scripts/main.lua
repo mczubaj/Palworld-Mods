@@ -7,90 +7,65 @@ local isHotkeysEnabled = false
 
 ---@type UPalUtility
 local palUtility
-
----@type UPalMapObjectConcreteModelBase
-local targetStorageContainer
 ---@type APlayerController
 local player
+
+---@type UPalMapObjectItemContainerModule
+local targetStorageContainerModule
 ---@type UPalCommonScrollListBase
 local playerInventoryWidget
 
--- Returns items that exist both in player's inventory and the target storage container
-local function GetMatches()
-  local containerItems = targetStorageContainer:GetItemContainerModule():GetContainer().ItemSlotArray
-
-  local containerMatchLookup = {}
-  for index = 1, #containerItems do
-    local staticId = containerItems[index]:GetItemId().StaticId:ToString()
-    containerMatchLookup[staticId] = true
-  end
-
-  local inventoryData = palUtility:GetPlayerState(player):GetInventoryData()
-  ---@type TArray<EPalItemTypeA>
-  local itemTypes = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 }
-  ---@type TArray<FPalItemAndNum>
-  local inventoryItemInfos = {}
-  -- //TODO: replace with UPalItemContainerMultiHelper.Containers[index].ItemSlotArray ?
-  inventoryData:GetItemInfoByItemTypeA(itemTypes, inventoryItemInfos)
-
-  ---@type TArray<FPalItemAndNum>
-  local matched = {}
-  for _, item in ipairs(inventoryItemInfos) do
-    ---@type FPalItemAndNum
-    local retrievedItem = item:get()
-    local staticId = retrievedItem.ItemId.StaticId:ToString()
-
-    if containerMatchLookup[staticId] then
-      table.insert(matched, item)
-    end
-  end
-
-  return matched
-end
-
 local function GetContainerParams()
-  local targetStorageContainerId = targetStorageContainer:GetItemContainerModule():GetContainerId()
+  local targetStorageContainerId = targetStorageContainerModule:GetContainerId()
+  local targetStorageContainerSlots = targetStorageContainerModule:GetContainer().ItemSlotArray
 
   local playerInventoryContainers = palUtility:GetPlayerState(player):GetInventoryData().InventoryMultiHelper.Containers
-  -- //TODO: magic number
-  -- maybe solve with UPalItemContainerMultiHelper:FindByStaticItemIds - use current inv contents to find container
+  -- index is a magic number from EPalPlayerInventoryType - at the time of writing, the type we want is "Common"
   local playerInventorySlots = playerInventoryContainers[1].ItemSlotArray
 
-  return targetStorageContainerId, playerInventorySlots
+  return playerInventorySlots, targetStorageContainerId, targetStorageContainerSlots
 end
 
 local function StoreSmart()
-  local matchedItems = GetMatches()
+  local playerInventorySlots, targetStorageContainerId, targetStorageContainerSlots = GetContainerParams()
 
-  local lookup = {}
-  for index = 1, #matchedItems do
-    local staticId = matchedItems[index]:get().ItemId.StaticId:ToString()
-    lookup[staticId] = true
+  local targetStorageLookup = {}
+  for index = 1, #targetStorageContainerSlots do
+    local staticId = targetStorageContainerSlots[index]:GetItemId().StaticId:ToString()
+    targetStorageLookup[staticId] = true
   end
-
-  local targetStorageContainerId, playerInventorySlots = GetContainerParams()
 
   for index = 1, #playerInventorySlots do
     local slot = playerInventorySlots[index]
     local staticId = slot.ItemId.StaticId:ToString()
 
-    if lookup[staticId] then
+    if targetStorageLookup[staticId] then
       playerInventoryWidget:MoveItem(1, slot, targetStorageContainerId)
     end
   end
 end
 
 local function StoreAll()
-  local targetStorageContainerId, playerInventorySlots = GetContainerParams()
+  local playerInventorySlots, targetStorageContainerId = GetContainerParams()
 
   for index = 1, #playerInventorySlots do
     playerInventoryWidget:MoveItem(1, playerInventorySlots[index], targetStorageContainerId)
   end
 end
 
+local function CheckIsHotkeysEnabled(hotkeyType)
+  if not isHotkeysEnabled then
+    palUtility:SendSystemAnnounce(player, hotkeyType + " hotkey is disabled!")
+    print(hotkeyType + " hotkey is disabled!")
+    return false
+  end
+
+  return true
+end
+
 local function Cleanup()
   ---@diagnostic disable: cast-local-type
-  targetStorageContainer = nil
+  targetStorageContainerModule = nil
   playerInventoryWidget = nil
   ---@diagnostic enable: cast-local-type
 
@@ -111,7 +86,7 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(PlayerCon
     function(TargetStorageContainer, _, InteractionType)
       print("Container interact triggered")
 
-      targetStorageContainer = TargetStorageContainer:get()
+      targetStorageContainerModule = TargetStorageContainer:get().GetItemContainerModule()
 
       if isWidgetsHooked then return end
       isWidgetsHooked = true
@@ -135,27 +110,13 @@ RegisterHook("/Script/Engine.PlayerController:ClientRestart", function(PlayerCon
     end)
 
   RegisterKeyBind(config.SMART_DROPOFF_HOTKEY, function()
-    if not isHotkeysEnabled then
-      palUtility:SendSystemAnnounce(player, "Smart dropoff hotkey disabled!")
-      print("Smart dropoff hotkey disabled")
-      return
-    end
-
-    print("Smart dropoff hotkey pressed")
-    palUtility:SendSystemAnnounce(player, "Smart dropoff hotkey pressed!")
+    if not CheckIsHotkeysEnabled("Smart dropoff") then return end
 
     StoreSmart()
   end)
 
   RegisterKeyBind(config.ALL_DROPOFF_HOTKEY, function()
-    if not isHotkeysEnabled then
-      palUtility:SendSystemAnnounce(player, "Store all hotkey disabled!")
-      print("Store all hotkey disabled")
-      return
-    end
-
-    print("Store all hotkey pressed")
-    palUtility:SendSystemAnnounce(player, "Store all hotkey pressed!")
+    if not CheckIsHotkeysEnabled("Store all") then return end
 
     StoreAll()
   end)
