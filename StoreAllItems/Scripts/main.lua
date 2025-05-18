@@ -51,18 +51,6 @@ local function StoreAll()
   end
 end
 
-local function CheckIsHotkeysEnabled(hotkeyType)
-  if not isHotkeysEnabled then
-    palUtility:SendSystemAnnounce(player, hotkeyType .. " hotkey is disabled!")
-    print(hotkeyType .. " hotkey is disabled!")
-    return false
-  end
-
-  palUtility:SendSystemAnnounce(player, hotkeyType .. " pressed!")
-  print(hotkeyType .. " pressed!")
-  return true
-end
-
 local function Cleanup()
   ---@diagnostic disable: cast-local-type
   targetStorageContainerModule = nil
@@ -79,12 +67,12 @@ local function HandleModLogic(PlayerController)
   ---@type APlayerController
   player = PlayerController:get().Pawn
   ---@type UPalUtility
+  ---@diagnostic disable-next-line: assign-type-mismatch
   palUtility = StaticFindObject("/Script/Pal.Default__PalUtility")
 
   RegisterHook("/Script/Pal.PalMapObjectConcreteModelBase:OnTriggerInteract",
     function(TargetStorageContainer)
-      print("Container interact triggered")
-
+      ---@diagnostic disable-next-line: undefined-field
       targetStorageContainerModule = TargetStorageContainer:get().GetItemContainerModule()
 
       if isWidgetsHooked then return end
@@ -93,8 +81,7 @@ local function HandleModLogic(PlayerController)
       RegisterHook(
         "/Game/Pal/Blueprint/UI/Inventory/WBP_PalPlayerInventoryScrollList.WBP_PalPlayerInventoryScrollList_C:Construct",
         function(PlayerInventoryWidget)
-          print("Widget construct triggered")
-
+          ---@diagnostic disable-next-line: undefined-field
           playerInventoryWidget = PlayerInventoryWidget:get()
 
           if targetStorageContainerModule:IsValid() and playerInventoryWidget:IsValid() then
@@ -105,22 +92,16 @@ local function HandleModLogic(PlayerController)
       RegisterHook(
         "/Game/Pal/Blueprint/UI/MapObject/ItemChest/WBP_ItemChest.WBP_ItemChest_C:Destruct",
         function()
-          print("Widget destruct triggered")
-
           Cleanup()
         end)
     end)
 
   -- RegisterKeyBind(config.SMART_DROPOFF_HOTKEY, function()
-  --   if not CheckIsHotkeysEnabled("Smart dropoff") then return end
-
-  --   StoreSmart()
+  --   if isHotkeysEnabled then StoreSmart() end
   -- end)
 
   RegisterKeyBind(config.ALL_DROPOFF_HOTKEY, function()
-    if not CheckIsHotkeysEnabled("Store all") then return end
-
-    StoreAll()
+    if isHotkeysEnabled then StoreAll() end
   end)
 end
 
