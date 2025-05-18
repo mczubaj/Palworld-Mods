@@ -1,0 +1,8 @@
+{
+  "name": "OilExtractorAnywhere",
+  "authors": [
+    "czubai"
+  ],
+  "description": "Allows building Oil Extractors anywhere on the map.",
+  "version": "1.0.0"
+}

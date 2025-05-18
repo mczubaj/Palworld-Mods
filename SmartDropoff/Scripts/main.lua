@@ -1,4 +1,3 @@
-local helpers = require("helpers")
 local config = require "config"
 
 local isHooked = false
@@ -25,24 +24,24 @@ local function GetContainerParams()
   return playerInventorySlots, targetStorageContainerId, targetStorageContainerSlots
 end
 
-local function StoreSmart()
-  local playerInventorySlots, targetStorageContainerId, targetStorageContainerSlots = GetContainerParams()
+-- local function StoreSmart()
+--   local playerInventorySlots, targetStorageContainerId, targetStorageContainerSlots = GetContainerParams()
 
-  local targetStorageLookup = {}
-  for index = 1, #targetStorageContainerSlots do
-    local staticId = targetStorageContainerSlots[index]:GetItemId().StaticId:ToString()
-    targetStorageLookup[staticId] = true
-  end
+--   local targetStorageLookup = {}
+--   for index = 1, #targetStorageContainerSlots do
+--     local staticId = targetStorageContainerSlots[index]:GetItemId().StaticId:ToString()
+--     targetStorageLookup[staticId] = true
+--   end
 
-  for index = 1, #playerInventorySlots do
-    local slot = playerInventorySlots[index]
-    local staticId = slot.ItemId.StaticId:ToString()
+--   for index = 1, #playerInventorySlots do
+--     local slot = playerInventorySlots[index]
+--     local staticId = slot.ItemId.StaticId:ToString()
 
-    if targetStorageLookup[staticId] then
-      playerInventoryWidget:MoveItem(1, slot, targetStorageContainerId)
-    end
-  end
-end
+--     if targetStorageLookup[staticId] then
+--       playerInventoryWidget:MoveItem(1, slot, targetStorageContainerId)
+--     end
+--   end
+-- end
 
 local function StoreAll()
   local playerInventorySlots, targetStorageContainerId = GetContainerParams()
@@ -80,11 +79,10 @@ local function HandleModLogic(PlayerController)
   ---@type APlayerController
   player = PlayerController:get().Pawn
   ---@type UPalUtility
-  ---@diagnostic disable-next-line: assign-type-mismatch
   palUtility = StaticFindObject("/Script/Pal.Default__PalUtility")
 
   RegisterHook("/Script/Pal.PalMapObjectConcreteModelBase:OnTriggerInteract",
-    function(TargetStorageContainer, _, InteractionType)
+    function(TargetStorageContainer)
       print("Container interact triggered")
 
       targetStorageContainerModule = TargetStorageContainer:get().GetItemContainerModule()
@@ -98,7 +96,10 @@ local function HandleModLogic(PlayerController)
           print("Widget construct triggered")
 
           playerInventoryWidget = PlayerInventoryWidget:get()
-          isHotkeysEnabled = true
+
+          if targetStorageContainerModule:IsValid() and playerInventoryWidget:IsValid() then
+            isHotkeysEnabled = true
+          end
         end)
 
       RegisterHook(
@@ -110,11 +111,11 @@ local function HandleModLogic(PlayerController)
         end)
     end)
 
-  RegisterKeyBind(config.SMART_DROPOFF_HOTKEY, function()
-    if not CheckIsHotkeysEnabled("Smart dropoff") then return end
+  -- RegisterKeyBind(config.SMART_DROPOFF_HOTKEY, function()
+  --   if not CheckIsHotkeysEnabled("Smart dropoff") then return end
 
-    StoreSmart()
-  end)
+  --   StoreSmart()
+  -- end)
 
   RegisterKeyBind(config.ALL_DROPOFF_HOTKEY, function()
     if not CheckIsHotkeysEnabled("Store all") then return end
