@@ -75,6 +75,7 @@ local function HandleModLogic(PlayerController)
       ---@diagnostic disable-next-line: undefined-field
       targetStorageContainerModule = TargetStorageContainer:get().GetItemContainerModule()
 
+      -- TODO: hook widgets outside of OnTriggerInteract?
       if isWidgetsHooked then return end
       isWidgetsHooked = true
 
