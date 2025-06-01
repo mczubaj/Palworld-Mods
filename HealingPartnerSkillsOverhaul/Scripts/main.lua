@@ -6,15 +6,14 @@ local function handlePercentageHeals(Context)
   if isHooked then return end
   isHooked = true
 
-  local palUtility = StaticFindObject("/Script/Pal.Default__PalUtility")
-  local playerStats = palUtility:GetPlayerCharacter(Context:get()):GetCharacterParameterComponent()
-  local otomoHolder = palUtility:GetOtomoHolderComponent(Context:get())
-
   RegisterHook("/Script/Pal.PalPartnerSkillParameterComponent:GetActiveSkillMainValueByRank", function(Context)
+    ---@type UPalPartnerSkillParameterComponent
+    ---@diagnostic disable-next-line: undefined-field
     local invokedSkillParams = Context:get()
+
     local skillConfig = nil
 
-    for _, v in pairs(config) do
+    for _, v in pairs(config.skills) do
       if v.skillName == invokedSkillParams:GetSkillName():ToString() then
         skillConfig = v
       end
@@ -23,10 +22,16 @@ local function handlePercentageHeals(Context)
     if skillConfig == nil then return end
 
     if not skillConfig.isCooldownHooked and skillConfig.cooldown ~= 0 then
-      invokedSkillParams.coolDownTimeMax.value = skillConfig.cooldown * 1000
-      invokedSkillParams.CoolDownTime.value = skillConfig.cooldown * 1000
+      invokedSkillParams.coolDownTimeMax.Value = skillConfig.cooldown * 1000
+      invokedSkillParams.CoolDownTime.Value = skillConfig.cooldown * 1000
       skillConfig.isCooldownHooked = true
     end
+
+    ---@type UPalUtility
+    ---@diagnostic disable-next-line: assign-type-mismatch
+    local palUtility = StaticFindObject("/Script/Pal.Default__PalUtility")
+    local playerStats = palUtility:GetPlayerCharacter(invokedSkillParams):GetCharacterParameterComponent()
+    local otomoHolder = palUtility:GetOtomoHolderComponent(invokedSkillParams)
 
     local spawnedPalRank = otomoHolder:TryGetSpawnedOtomo():GetCharacterParameterComponent():GetIndividualParameter()
         :GetRank()
@@ -37,6 +42,12 @@ local function handlePercentageHeals(Context)
       (customFlatHealAmount ~= 0 and customFlatHealAmount) or
       invokedSkillParams.ActiveSkill_MainValueByRank[spawnedPalRank])
 
+    if config.experimentalCtdFix then
+      invokedSkillParams.ActiveSkill_MainValueByRank[spawnedPalRank] = highestHealAmount
+      return
+    end
+
+    ---@diagnostic disable-next-line: redundant-return-value
     return highestHealAmount
   end)
 end
