@@ -12,6 +12,15 @@ local targetStorageContainerModule
 ---@type UPalCommonScrollListBase
 local playerInventoryWidget
 
+local function Cleanup()
+  ---@diagnostic disable: cast-local-type
+  targetStorageContainerModule = nil
+  playerInventoryWidget = nil
+  ---@diagnostic enable: cast-local-type
+
+  isHotkeysEnabled = false
+end
+
 local function HandleModLogic(PlayerController)
   if isHooked then return end
   isHooked = true
@@ -73,6 +82,7 @@ local function HandleModLogic(PlayerController)
       RegisterHook(
         "/Game/Pal/Blueprint/UI/MapObject/ItemChest/WBP_ItemChest.WBP_ItemChest_C:Destruct",
         function()
+          Cleanup()
         end)
     end)
 
