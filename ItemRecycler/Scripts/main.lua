@@ -11,6 +11,26 @@ local player
 local targetStorageContainerModule
 ---@type UPalCommonScrollListBase
 local playerInventoryWidget
+---@type FPalItemRecipe
+local recipeForRefund
+
+local function RefundItems()
+  local materials = {
+    { id = recipeForRefund.Material1_Id, count = recipeForRefund.Material1_Count },
+    { id = recipeForRefund.Material2_Id, count = recipeForRefund.Material2_Count },
+    { id = recipeForRefund.Material3_Id, count = recipeForRefund.Material3_Count },
+    { id = recipeForRefund.Material4_Id, count = recipeForRefund.Material4_Count },
+    { id = recipeForRefund.Material5_Id, count = recipeForRefund.Material5_Count },
+  }
+
+  for _, material in ipairs(materials) do
+    print("Attempting to refund material:", material.id:ToString(), "x", material.count)
+    if (material.id:ToString() ~= 'None' and material.count ~= 0) then
+      print("Giving", material.id:ToString(), "x", material.count)
+      -- AddToInventory(material.id, material.count)
+    end
+  end
+end
 
 local function Cleanup()
   ---@diagnostic disable: cast-local-type
@@ -46,11 +66,15 @@ local function HandleModLogic(PlayerController)
 
       local recipeTableAccess = palDataTablesUtility:GetItemRecipeDataTableAccess(player)
 
+      print("Looking for recipes in player inventory...")
       -- Loop through inventory and lookup recipe for each item
       for index = 1, #playerInventorySlots do
+        if recipeForRefund then break end
+        print("No recipe set, checking slot ", index)
+
         local slot = playerInventorySlots[index]
 
-        if slot:IsEmpty() then return end
+        if slot:IsEmpty() then goto continue end
 
         local itemName = slot.ItemId.StaticId:ToString()
         local isRecipeFound = {}
@@ -59,22 +83,31 @@ local function HandleModLogic(PlayerController)
 
         if isRecipeFound.bResult then
           print("Recipe found for item:", itemName)
+          recipeForRefund = recipe
 
-          print(recipe.Material1_Id:ToString(), "x", recipe.Material1_Count)
-          print(recipe.Material2_Id:ToString(), "x", recipe.Material2_Count)
-          print(recipe.Material3_Id:ToString(), "x", recipe.Material3_Count)
-          print(recipe.Material4_Id:ToString(), "x", recipe.Material4_Count)
-          print(recipe.Material5_Id:ToString(), "x", recipe.Material5_Count)
+          -- print(recipe.Material1_Id:ToString(), "x", recipe.Material1_Count)
+          -- print(recipe.Material2_Id:ToString(), "x", recipe.Material2_Count)
+          -- print(recipe.Material3_Id:ToString(), "x", recipe.Material3_Count)
+          -- print(recipe.Material4_Id:ToString(), "x", recipe.Material4_Count)
+          -- print(recipe.Material5_Id:ToString(), "x", recipe.Material5_Count)
         end
+
+        ::continue::
       end
+
+      if isWidgetsHooked then return end
+      print("[ItemRecycler] Hooking widgets...")
+      isWidgetsHooked = true
 
       RegisterHook(
         "/Game/Pal/Blueprint/UI/Inventory/WBP_PalPlayerInventoryScrollList.WBP_PalPlayerInventoryScrollList_C:Construct",
         function(PlayerInventoryWidget)
+          print("[ItemRecycler] PlayerInventoryWidget constructed")
           ---@diagnostic disable-next-line: undefined-field
           playerInventoryWidget = PlayerInventoryWidget:get()
 
           if targetStorageContainerModule:IsValid() and playerInventoryWidget:IsValid() then
+            print("Enabling hotkeys...")
             isHotkeysEnabled = true
           end
         end)
@@ -82,11 +115,14 @@ local function HandleModLogic(PlayerController)
       RegisterHook(
         "/Game/Pal/Blueprint/UI/MapObject/ItemChest/WBP_ItemChest.WBP_ItemChest_C:Destruct",
         function()
+          print("[ItemRecycler] ItemChest widget destructed, cleaning up...")
           Cleanup()
         end)
     end)
 
   RegisterKeyBind(Key.N, function()
+    print("N key pressed, refunding items...")
+    if isHotkeysEnabled and recipeForRefund then RefundItems() end;
   end)
 end
 
