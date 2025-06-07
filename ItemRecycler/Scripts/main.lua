@@ -1,5 +1,4 @@
 local isHooked = false
-local isWidgetsHooked = false
 
 ---@type UPalUtility
 local palUtility
@@ -8,11 +7,13 @@ local player
 
 ---@type FPalItemRecipe
 local recipeForRefund
+---@type TArray<UPalItemSlot>
+local containerSlots
 
--- TODO: Probably not needed anymore
 local function Cleanup()
   ---@diagnostic disable: cast-local-type
   recipeForRefund = nil
+  containerSlots = nil
   ---@diagnostic enable: cast-local-type
 end
 
@@ -37,6 +38,7 @@ local function RecycleItem()
     if (material.id:ToString() ~= 'None' and material.count ~= 0) then
       print("Refunding", material.id:ToString(), "x", material.count)
       palUtility:GetPlayerState(player):GetInventoryData():AddItem_ServerInternal(material.id, material.count, true)
+      containerSlots[1].StackCount = 0;
       Cleanup()
     end
   end
@@ -68,16 +70,21 @@ local function HandleModLogic(PlayerController)
         return
       end
 
-      local shelfSlots = targetObject:GetItemContainerModule():GetContainer().ItemSlotArray
       local recipeTableAccess = palDataTablesUtility:GetItemRecipeDataTableAccess(player)
+      containerSlots = targetObject:GetItemContainerModule():GetContainer().ItemSlotArray
+
+      -- Trim slots to one
+      local firstSlotCopy = containerSlots[1]
+      containerSlots:Empty();
+      containerSlots[1] = firstSlotCopy
 
       -- TODO: Switch to just checking first slot
       print("Looking for recipes in container...")
-      for index = 1, #shelfSlots do
+      for index = 1, #containerSlots do
         if recipeForRefund then break end
         print("No recipe set, checking slot ", index)
 
-        local slot = shelfSlots[index]
+        local slot = containerSlots[index]
 
         if slot:IsEmpty() then goto continue end
 
@@ -93,26 +100,13 @@ local function HandleModLogic(PlayerController)
 
         ::continue::
       end
-
-      if isWidgetsHooked then return end
-      print("[ItemRecycler] Hooking widgets...")
-      isWidgetsHooked = true
-
-      -- TODO: Move this hook outside of OnTriggerInteract?
-      RegisterHook(
-        "/Game/Pal/Blueprint/UI/MapObject/ItemChest/WBP_ItemChest.WBP_ItemChest_C:Destruct",
-        function()
-          print("[ItemRecycler] ItemChest widget destructed, cleaning up...")
-          Cleanup()
-        end)
     end)
 
-  -- TODO: check if this is needed or WBP_ItemChest_C:Destruct is enough
-  -- RegisterHook("/Script/Pal.PalMapObject:OnCloseParameter",
-  --   function()
-  --     print("[ItemRecycler] OnCloseParameter called, cleaning up...")
-  --     Cleanup()
-  --   end)
+  RegisterHook("/Script/Pal.PalMapObject:OnCloseParameter",
+    function()
+      print("[ItemRecycler] OnCloseParameter called, cleaning up...")
+      Cleanup()
+    end)
 
   RegisterKeyBind(Key.N, function()
     print("N key pressed")
@@ -121,5 +115,4 @@ local function HandleModLogic(PlayerController)
 end
 
 RegisterHook("/Script/Engine.PlayerController:ClientRestart", HandleModLogic)
-
 RegisterHook("/Script/Engine.PlayerController:ServerAcknowledgePossession", HandleModLogic)
