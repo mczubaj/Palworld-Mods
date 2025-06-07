@@ -5,25 +5,25 @@ local palUtility
 ---@type APlayerController
 local player
 
----@type FPalItemRecipe
+---@type FPalItemRecipe | nil
 local recipeForRefund
----@type TArray<UPalItemSlot>
+-- TODO: Keep only containerModule and get slots from it?
+---@type TArray<UPalItemSlot> | nil
 local containerSlots
----@type UPalMapObjectItemContainerModule
+---@type UPalMapObjectItemContainerModule | nil
 local containerModule
 
 local function Cleanup()
-  ---@diagnostic disable: cast-local-type
   recipeForRefund = nil
   containerSlots = nil
-  ---@diagnostic enable: cast-local-type
+  containerModule = nil
 end
 
 local function RecycleItem()
   print("Recycling recipe: ", recipeForRefund)
 
-  if not recipeForRefund then
-    print("No recipe for refund found")
+  if not recipeForRefund or not containerSlots or not containerModule then
+    print("No recipe or container for refund found")
     return
   end
 
@@ -44,9 +44,10 @@ local function RecycleItem()
       -- Sorting refreshes the container after modifying StackCount directly
       -- Without this the item still shows in the container until reopening, even though it's not interactable
       containerModule:RequestSortContainer()
-      Cleanup()
     end
   end
+
+  recipeForRefund = nil
 end
 
 local function HandleModLogic(PlayerController)
