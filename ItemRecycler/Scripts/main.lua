@@ -27,7 +27,7 @@ local function RefundItems()
     print("Attempting to refund material:", material.id:ToString(), "x", material.count)
     if (material.id:ToString() ~= 'None' and material.count ~= 0) then
       print("Giving", material.id:ToString(), "x", material.count)
-      -- AddToInventory(material.id, material.count)
+      palUtility:GetPlayerState(player):GetInventoryData():AddItem_ServerInternal(material.id, material.count, true)
     end
   end
 end
@@ -36,6 +36,7 @@ local function Cleanup()
   ---@diagnostic disable: cast-local-type
   targetStorageContainerModule = nil
   playerInventoryWidget = nil
+  recipeForRefund = nil
   ---@diagnostic enable: cast-local-type
 
   isHotkeysEnabled = false
@@ -84,12 +85,6 @@ local function HandleModLogic(PlayerController)
         if isRecipeFound.bResult then
           print("Recipe found for item:", itemName)
           recipeForRefund = recipe
-
-          -- print(recipe.Material1_Id:ToString(), "x", recipe.Material1_Count)
-          -- print(recipe.Material2_Id:ToString(), "x", recipe.Material2_Count)
-          -- print(recipe.Material3_Id:ToString(), "x", recipe.Material3_Count)
-          -- print(recipe.Material4_Id:ToString(), "x", recipe.Material4_Count)
-          -- print(recipe.Material5_Id:ToString(), "x", recipe.Material5_Count)
         end
 
         ::continue::
@@ -106,7 +101,7 @@ local function HandleModLogic(PlayerController)
           ---@diagnostic disable-next-line: undefined-field
           playerInventoryWidget = PlayerInventoryWidget:get()
 
-          if targetStorageContainerModule:IsValid() and playerInventoryWidget:IsValid() then
+          if targetStorageContainerModule and targetStorageContainerModule:IsValid() and playerInventoryWidget:IsValid() then
             print("Enabling hotkeys...")
             isHotkeysEnabled = true
           end
@@ -121,8 +116,8 @@ local function HandleModLogic(PlayerController)
     end)
 
   RegisterKeyBind(Key.N, function()
-    print("N key pressed, refunding items...")
-    if isHotkeysEnabled and recipeForRefund then RefundItems() end;
+    print("N key pressed")
+    if isHotkeysEnabled and recipeForRefund then RefundItems() else Cleanup() end;
   end)
 end
 
