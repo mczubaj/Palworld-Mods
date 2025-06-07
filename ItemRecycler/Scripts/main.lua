@@ -1,3 +1,5 @@
+local config = require "config"
+
 local isHooked = false
 
 ---@type UPalUtility
@@ -25,7 +27,8 @@ end
 local function RecycleItem()
   if not containerSlots or not containerModule then
     ---@diagnostic disable-next-line: undefined-field
-    sendLogToPlayer("No or wrong container type is open, please use Shelf02_Iron to recycle items")
+    sendLogToPlayer("No or wrong container type is open, please use " ..
+      config.RECYCLING_CONTAINER_NAME .. " to recycle items")
     return
   end
 
@@ -33,7 +36,7 @@ local function RecycleItem()
 
   if not sourceSlot or sourceSlot:IsEmpty() then
     ---@diagnostic disable-next-line: undefined-field
-    sendLogToPlayer("Shelf02_Iron is empty, put an item into the container first to recycle it")
+    sendLogToPlayer(config.RECYCLING_CONTAINER_NAME .. " is empty, put an item into the container first to recycle it")
     return
   end
 
@@ -49,8 +52,7 @@ local function RecycleItem()
     return
   end
 
-  -- TODO: add ratio from config here:
-  local refundRatio = (sourceSlot.StackCount / recipe.Product_Count) * 0.9
+  local refundRatio = (sourceSlot.StackCount / recipe.Product_Count) * config.RECYCLE_RATIO
   local recipeMaterials = {
     { id = recipe.Material1_Id, count = recipe.Material1_Count },
     { id = recipe.Material2_Id, count = recipe.Material2_Count },
@@ -96,8 +98,7 @@ local function RegisterModHooks(PlayerController)
       local targetObject = TargetObject:get()
       local targetObjectName = targetObject:TryGetMapObjectId():ToString()
 
-      if targetObjectName ~= "Shelf02_Iron" then
-        print("Target object is not Long Iron Shelf, cleaning up...")
+      if targetObjectName ~= config.RECYCLING_CONTAINER_NAME then
         Cleanup()
         return
       end
@@ -115,12 +116,10 @@ local function RegisterModHooks(PlayerController)
 
   RegisterHook("/Script/Pal.PalMapObject:OnCloseParameter",
     function()
-      print("[ItemRecycler] OnCloseParameter called, cleaning up...")
       Cleanup()
     end)
 
-  RegisterKeyBind(Key.N, function()
-    print("N key pressed")
+  RegisterKeyBind(config.RECYCLE_HOTKEY, function()
     RecycleItem()
   end)
 end
