@@ -2,36 +2,51 @@ local isHooked = false
 
 ---@type UPalUtility
 local palUtility
+---@type UPalMasterDataTablesUtility
+local palDataTablesUtility
 ---@type APlayerController
 local player
 
----@type FPalItemRecipe | nil
-local recipeForRefund
 ---@type UPalMapObjectItemContainerModule | nil
 local containerModule
 ---@type TArray<UPalItemSlot> | nil
 local containerSlots
 
 local function Cleanup()
-  recipeForRefund = nil
   containerSlots = nil
   containerModule = nil
 end
 
 local function RecycleItem()
-  print("Recycling recipe: ", recipeForRefund)
+  if not containerSlots or not containerModule then
+    print("No container found, can't recycle item")
+    return
+  end
 
-  if not recipeForRefund or not containerSlots or not containerModule then
-    print("No recipe or container for refund found")
+  local firstContainerSlot = containerSlots[1]
+
+  if firstContainerSlot:IsEmpty() then
+    print("Container slot is empty, nothing to recycle")
+    return
+  end
+
+  local itemName = firstContainerSlot.ItemId.StaticId
+  local recipeTableAccess = palDataTablesUtility:GetItemRecipeDataTableAccess(player)
+  local isRecipeFound = {}
+  ---@diagnostic disable-next-line: param-type-mismatch
+  local recipe = recipeTableAccess:BP_FindRow(itemName, isRecipeFound)
+
+  if not isRecipeFound.bResult then
+    print("Recipe not found for item:", itemName:ToString())
     return
   end
 
   local materials = {
-    { id = recipeForRefund.Material1_Id, count = recipeForRefund.Material1_Count },
-    { id = recipeForRefund.Material2_Id, count = recipeForRefund.Material2_Count },
-    { id = recipeForRefund.Material3_Id, count = recipeForRefund.Material3_Count },
-    { id = recipeForRefund.Material4_Id, count = recipeForRefund.Material4_Count },
-    { id = recipeForRefund.Material5_Id, count = recipeForRefund.Material5_Count },
+    { id = recipe.Material1_Id, count = recipe.Material1_Count },
+    { id = recipe.Material2_Id, count = recipe.Material2_Count },
+    { id = recipe.Material3_Id, count = recipe.Material3_Count },
+    { id = recipe.Material4_Id, count = recipe.Material4_Count },
+    { id = recipe.Material5_Id, count = recipe.Material5_Count },
   }
 
   for _, material in ipairs(materials) do
@@ -39,17 +54,15 @@ local function RecycleItem()
     if (material.id:ToString() ~= 'None' and material.count ~= 0) then
       print("Refunding", material.id:ToString(), "x", material.count)
       palUtility:GetPlayerState(player):GetInventoryData():AddItem_ServerInternal(material.id, material.count, true)
-      containerSlots[1].StackCount = 0
+      firstContainerSlot.StackCount = 0
       -- Sorting refreshes the container after modifying StackCount directly
       -- Without this the item still shows in the container until reopening, even though it's not interactable
       containerModule:RequestSortContainer()
     end
   end
-
-  recipeForRefund = nil
 end
 
-local function HandleModLogic(PlayerController)
+local function RegisterModHooks(PlayerController)
   if isHooked then return end
   isHooked = true
 
@@ -60,7 +73,7 @@ local function HandleModLogic(PlayerController)
   palUtility = StaticFindObject("/Script/Pal.Default__PalUtility")
   ---@type UPalMasterDataTablesUtility
   ---@diagnostic disable-next-line: assign-type-mismatch
-  local palDataTablesUtility = StaticFindObject("/Script/Pal.Default__PalMasterDataTablesUtility")
+  palDataTablesUtility = StaticFindObject("/Script/Pal.Default__PalMasterDataTablesUtility")
 
   RegisterHook("/Script/Pal.PalMapObjectConcreteModelBase:OnTriggerInteract",
     function(TargetObject)
@@ -78,52 +91,12 @@ local function HandleModLogic(PlayerController)
       containerModule = targetObject:GetItemContainerModule()
       containerSlots = containerModule:GetContainer().ItemSlotArray
 
-      local recipeTableAccess = palDataTablesUtility:GetItemRecipeDataTableAccess(player)
       local firstSlotRef = containerSlots[1]
-
       if #containerSlots > 1 then
         -- Trim slots to one
         containerSlots:Empty();
         containerSlots[1] = firstSlotRef
       end
-
-      if firstSlotRef:IsEmpty() then
-        print("Container slot is empty, not looking for recipe..")
-        return
-      end
-
-      local itemName = firstSlotRef.ItemId.StaticId
-      local isRecipeFound = {}
-      ---@diagnostic disable-next-line: param-type-mismatch
-      local recipe = recipeTableAccess:BP_FindRow(itemName, isRecipeFound)
-
-      if isRecipeFound.bResult then
-        print("Recipe found for item:", itemName:ToString())
-        recipeForRefund = recipe
-      end
-
-      -- TODO: Switch to just checking first slot
-      -- print("Looking for recipes in container...")
-      -- for index = 1, #containerSlots do
-      --   if recipeForRefund then break end
-      --   print("No recipe set, checking slot ", index)
-
-      --   local slot = containerSlots[index]
-
-      --   if slot:IsEmpty() then goto continue end
-
-      --   local itemName = slot.ItemId.StaticId:ToString()
-      --   local isRecipeFound = {}
-      --   ---@diagnostic disable-next-line: param-type-mismatch
-      --   local recipe = recipeTableAccess:BP_FindRow(FName(itemName), isRecipeFound)
-
-      --   if isRecipeFound.bResult then
-      --     print("Recipe found for item:", itemName)
-      --     recipeForRefund = recipe
-      --   end
-
-      --   ::continue::
-      -- end
     end)
 
   RegisterHook("/Script/Pal.PalMapObject:OnCloseParameter",
@@ -138,5 +111,5 @@ local function HandleModLogic(PlayerController)
   end)
 end
 
-RegisterHook("/Script/Engine.PlayerController:ClientRestart", HandleModLogic)
-RegisterHook("/Script/Engine.PlayerController:ServerAcknowledgePossession", HandleModLogic)
+RegisterHook("/Script/Engine.PlayerController:ClientRestart", RegisterModHooks)
+RegisterHook("/Script/Engine.PlayerController:ServerAcknowledgePossession", RegisterModHooks)
