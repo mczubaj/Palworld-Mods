@@ -25,7 +25,7 @@ local function RecycleItem()
 
   local sourceSlot = containerSlots[1]
 
-  if sourceSlot:IsEmpty() then
+  if not sourceSlot or sourceSlot:IsEmpty() then
     print("Container slot is empty, nothing to recycle")
     return
   end
@@ -37,11 +37,14 @@ local function RecycleItem()
   local recipe = recipeTableAccess:BP_FindRow(itemName, isRecipeFound)
 
   if not isRecipeFound.bResult then
+    -- TODO: Inform the player item has no recipe
     print("Recipe not found for item:", itemName:ToString())
     return
   end
 
-  local materials = {
+  -- TODO: add ratio from config here:
+  local refundRatio = (sourceSlot.StackCount / recipe.Product_Count) * 0.9
+  local recipeMaterials = {
     { id = recipe.Material1_Id, count = recipe.Material1_Count },
     { id = recipe.Material2_Id, count = recipe.Material2_Count },
     { id = recipe.Material3_Id, count = recipe.Material3_Count },
@@ -49,11 +52,11 @@ local function RecycleItem()
     { id = recipe.Material5_Id, count = recipe.Material5_Count },
   }
 
-  for _, material in ipairs(materials) do
+  for _, material in ipairs(recipeMaterials) do
     if (material.id:ToString() ~= 'None' and material.count ~= 0) then
-      local multipliedCount = material.count * sourceSlot.StackCount
-      print("Refunding", material.id:ToString(), "x", multipliedCount)
-      palUtility:GetPlayerState(player):GetInventoryData():AddItem_ServerInternal(material.id, multipliedCount, true)
+      local actualCount = math.ceil(material.count * refundRatio)
+      print("Refunding", material.id:ToString(), "x", actualCount)
+      palUtility:GetPlayerState(player):GetInventoryData():AddItem_ServerInternal(material.id, actualCount, true)
     end
   end
 
