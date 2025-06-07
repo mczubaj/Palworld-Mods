@@ -9,6 +9,8 @@ local player
 local recipeForRefund
 ---@type TArray<UPalItemSlot>
 local containerSlots
+---@type UPalMapObjectItemContainerModule
+local containerModule
 
 local function Cleanup()
   ---@diagnostic disable: cast-local-type
@@ -38,7 +40,10 @@ local function RecycleItem()
     if (material.id:ToString() ~= 'None' and material.count ~= 0) then
       print("Refunding", material.id:ToString(), "x", material.count)
       palUtility:GetPlayerState(player):GetInventoryData():AddItem_ServerInternal(material.id, material.count, true)
-      containerSlots[1].StackCount = 0;
+      containerSlots[1].StackCount = 0
+      -- Sorting refreshes the container after modifying StackCount directly
+      -- Without this the item still shows in the container until reopening, even though it's not interactable
+      containerModule:RequestSortContainer()
       Cleanup()
     end
   end
@@ -71,7 +76,8 @@ local function HandleModLogic(PlayerController)
       end
 
       local recipeTableAccess = palDataTablesUtility:GetItemRecipeDataTableAccess(player)
-      containerSlots = targetObject:GetItemContainerModule():GetContainer().ItemSlotArray
+      containerModule = targetObject:GetItemContainerModule()
+      containerSlots = containerModule:GetContainer().ItemSlotArray
 
       -- Trim slots to one
       local firstSlotCopy = containerSlots[1]
