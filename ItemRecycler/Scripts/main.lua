@@ -113,16 +113,16 @@ local function RegisterModHooks(PlayerController)
         containerSlots[1] = firstSlotRef
       end
     end)
-
-  RegisterHook("/Script/Pal.PalMapObject:OnCloseParameter",
-    function()
-      Cleanup()
-    end)
-
-  RegisterKeyBind(config.RECYCLE_HOTKEY, function()
-    RecycleItem()
-  end)
 end
+
+RegisterHook("/Script/Pal.PalMapObject:OnCloseParameter",
+  function()
+    Cleanup()
+  end)
+
+RegisterKeyBind(config.RECYCLE_HOTKEY, function()
+  RecycleItem()
+end)
 
 RegisterHook("/Script/Engine.PlayerController:ClientRestart", RegisterModHooks)
 RegisterHook("/Script/Engine.PlayerController:ServerAcknowledgePossession", RegisterModHooks)
