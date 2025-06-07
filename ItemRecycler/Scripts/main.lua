@@ -1,20 +1,29 @@
 local isHooked = false
 local isWidgetsHooked = false
-local isHotkeysEnabled = false
 
 ---@type UPalUtility
 local palUtility
 ---@type APlayerController
 local player
 
----@type UPalMapObjectItemContainerModule
-local targetStorageContainerModule
----@type UPalCommonScrollListBase
-local playerInventoryWidget
 ---@type FPalItemRecipe
 local recipeForRefund
 
-local function RefundItems()
+-- TODO: Probably not needed anymore
+local function Cleanup()
+  ---@diagnostic disable: cast-local-type
+  recipeForRefund = nil
+  ---@diagnostic enable: cast-local-type
+end
+
+local function RecycleItem()
+  print("Recycling recipe: ", recipeForRefund)
+
+  if not recipeForRefund then
+    print("No recipe for refund found")
+    return
+  end
+
   local materials = {
     { id = recipeForRefund.Material1_Id, count = recipeForRefund.Material1_Count },
     { id = recipeForRefund.Material2_Id, count = recipeForRefund.Material2_Count },
@@ -26,20 +35,11 @@ local function RefundItems()
   for _, material in ipairs(materials) do
     print("Attempting to refund material:", material.id:ToString(), "x", material.count)
     if (material.id:ToString() ~= 'None' and material.count ~= 0) then
-      print("Giving", material.id:ToString(), "x", material.count)
+      print("Refunding", material.id:ToString(), "x", material.count)
       palUtility:GetPlayerState(player):GetInventoryData():AddItem_ServerInternal(material.id, material.count, true)
+      Cleanup()
     end
   end
-end
-
-local function Cleanup()
-  ---@diagnostic disable: cast-local-type
-  targetStorageContainerModule = nil
-  playerInventoryWidget = nil
-  recipeForRefund = nil
-  ---@diagnostic enable: cast-local-type
-
-  isHotkeysEnabled = false
 end
 
 local function HandleModLogic(PlayerController)
@@ -51,29 +51,33 @@ local function HandleModLogic(PlayerController)
   ---@type UPalUtility
   ---@diagnostic disable-next-line: assign-type-mismatch
   palUtility = StaticFindObject("/Script/Pal.Default__PalUtility")
+  ---@type UPalMasterDataTablesUtility
+  ---@diagnostic disable-next-line: assign-type-mismatch
+  local palDataTablesUtility = StaticFindObject("/Script/Pal.Default__PalMasterDataTablesUtility")
 
   RegisterHook("/Script/Pal.PalMapObjectConcreteModelBase:OnTriggerInteract",
-    function(TargetStorageContainer)
+    function(TargetObject)
+      ---@type UPalMapObjectConcreteModelBase
       ---@diagnostic disable-next-line: undefined-field
-      targetStorageContainerModule = TargetStorageContainer:get().GetItemContainerModule()
+      local targetObject = TargetObject:get()
+      local targetObjectName = targetObject:TryGetMapObjectId():ToString()
 
-      ---@type UPalMasterDataTablesUtility
-      ---@diagnostic disable-next-line: assign-type-mismatch
-      local palDataTablesUtility = StaticFindObject("/Script/Pal.Default__PalMasterDataTablesUtility")
+      if targetObjectName ~= "Shelf02_Iron" then
+        print("Target object is not Long Iron Shelf, cleaning up...")
+        Cleanup()
+        return
+      end
 
-      -- index is a magic number from EPalPlayerInventoryType - at the time of writing, the type we want is "Common"
-      local playerInventorySlots = palUtility:GetPlayerState(player):GetInventoryData().InventoryMultiHelper
-          .Containers[1].ItemSlotArray
-
+      local shelfSlots = targetObject:GetItemContainerModule():GetContainer().ItemSlotArray
       local recipeTableAccess = palDataTablesUtility:GetItemRecipeDataTableAccess(player)
 
-      print("Looking for recipes in player inventory...")
-      -- Loop through inventory and lookup recipe for each item
-      for index = 1, #playerInventorySlots do
+      -- TODO: Switch to just checking first slot
+      print("Looking for recipes in container...")
+      for index = 1, #shelfSlots do
         if recipeForRefund then break end
         print("No recipe set, checking slot ", index)
 
-        local slot = playerInventorySlots[index]
+        local slot = shelfSlots[index]
 
         if slot:IsEmpty() then goto continue end
 
@@ -94,19 +98,7 @@ local function HandleModLogic(PlayerController)
       print("[ItemRecycler] Hooking widgets...")
       isWidgetsHooked = true
 
-      RegisterHook(
-        "/Game/Pal/Blueprint/UI/Inventory/WBP_PalPlayerInventoryScrollList.WBP_PalPlayerInventoryScrollList_C:Construct",
-        function(PlayerInventoryWidget)
-          print("[ItemRecycler] PlayerInventoryWidget constructed")
-          ---@diagnostic disable-next-line: undefined-field
-          playerInventoryWidget = PlayerInventoryWidget:get()
-
-          if targetStorageContainerModule and targetStorageContainerModule:IsValid() and playerInventoryWidget:IsValid() then
-            print("Enabling hotkeys...")
-            isHotkeysEnabled = true
-          end
-        end)
-
+      -- TODO: Move this hook outside of OnTriggerInteract?
       RegisterHook(
         "/Game/Pal/Blueprint/UI/MapObject/ItemChest/WBP_ItemChest.WBP_ItemChest_C:Destruct",
         function()
@@ -115,9 +107,16 @@ local function HandleModLogic(PlayerController)
         end)
     end)
 
+  -- TODO: check if this is needed or WBP_ItemChest_C:Destruct is enough
+  -- RegisterHook("/Script/Pal.PalMapObject:OnCloseParameter",
+  --   function()
+  --     print("[ItemRecycler] OnCloseParameter called, cleaning up...")
+  --     Cleanup()
+  --   end)
+
   RegisterKeyBind(Key.N, function()
     print("N key pressed")
-    if isHotkeysEnabled and recipeForRefund then RefundItems() else Cleanup() end;
+    RecycleItem()
   end)
 end
 
