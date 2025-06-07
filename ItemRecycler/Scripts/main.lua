@@ -75,39 +75,55 @@ local function HandleModLogic(PlayerController)
         return
       end
 
-      local recipeTableAccess = palDataTablesUtility:GetItemRecipeDataTableAccess(player)
       containerModule = targetObject:GetItemContainerModule()
       containerSlots = containerModule:GetContainer().ItemSlotArray
 
+      local recipeTableAccess = palDataTablesUtility:GetItemRecipeDataTableAccess(player)
+      local firstSlotRef = containerSlots[1]
+
       if #containerSlots > 1 then
         -- Trim slots to one
-        local firstSlotCopy = containerSlots[1]
         containerSlots:Empty();
-        containerSlots[1] = firstSlotCopy
+        containerSlots[1] = firstSlotRef
+      end
+
+      if firstSlotRef:IsEmpty() then
+        print("Container slot is empty, not looking for recipe..")
+        return
+      end
+
+      local itemName = firstSlotRef.ItemId.StaticId
+      local isRecipeFound = {}
+      ---@diagnostic disable-next-line: param-type-mismatch
+      local recipe = recipeTableAccess:BP_FindRow(itemName, isRecipeFound)
+
+      if isRecipeFound.bResult then
+        print("Recipe found for item:", itemName:ToString())
+        recipeForRefund = recipe
       end
 
       -- TODO: Switch to just checking first slot
-      print("Looking for recipes in container...")
-      for index = 1, #containerSlots do
-        if recipeForRefund then break end
-        print("No recipe set, checking slot ", index)
+      -- print("Looking for recipes in container...")
+      -- for index = 1, #containerSlots do
+      --   if recipeForRefund then break end
+      --   print("No recipe set, checking slot ", index)
 
-        local slot = containerSlots[index]
+      --   local slot = containerSlots[index]
 
-        if slot:IsEmpty() then goto continue end
+      --   if slot:IsEmpty() then goto continue end
 
-        local itemName = slot.ItemId.StaticId:ToString()
-        local isRecipeFound = {}
-        ---@diagnostic disable-next-line: param-type-mismatch
-        local recipe = recipeTableAccess:BP_FindRow(FName(itemName), isRecipeFound)
+      --   local itemName = slot.ItemId.StaticId:ToString()
+      --   local isRecipeFound = {}
+      --   ---@diagnostic disable-next-line: param-type-mismatch
+      --   local recipe = recipeTableAccess:BP_FindRow(FName(itemName), isRecipeFound)
 
-        if isRecipeFound.bResult then
-          print("Recipe found for item:", itemName)
-          recipeForRefund = recipe
-        end
+      --   if isRecipeFound.bResult then
+      --     print("Recipe found for item:", itemName)
+      --     recipeForRefund = recipe
+      --   end
 
-        ::continue::
-      end
+      --   ::continue::
+      -- end
     end)
 
   RegisterHook("/Script/Pal.PalMapObject:OnCloseParameter",
