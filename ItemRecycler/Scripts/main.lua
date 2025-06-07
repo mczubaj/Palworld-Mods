@@ -7,11 +7,10 @@ local player
 
 ---@type FPalItemRecipe | nil
 local recipeForRefund
--- TODO: Keep only containerModule and get slots from it?
----@type TArray<UPalItemSlot> | nil
-local containerSlots
 ---@type UPalMapObjectItemContainerModule | nil
 local containerModule
+---@type TArray<UPalItemSlot> | nil
+local containerSlots
 
 local function Cleanup()
   recipeForRefund = nil
@@ -80,10 +79,12 @@ local function HandleModLogic(PlayerController)
       containerModule = targetObject:GetItemContainerModule()
       containerSlots = containerModule:GetContainer().ItemSlotArray
 
-      -- Trim slots to one
-      local firstSlotCopy = containerSlots[1]
-      containerSlots:Empty();
-      containerSlots[1] = firstSlotCopy
+      if #containerSlots > 1 then
+        -- Trim slots to one
+        local firstSlotCopy = containerSlots[1]
+        containerSlots:Empty();
+        containerSlots[1] = firstSlotCopy
+      end
 
       -- TODO: Switch to just checking first slot
       print("Looking for recipes in container...")
