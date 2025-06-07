@@ -23,14 +23,14 @@ local function RecycleItem()
     return
   end
 
-  local firstContainerSlot = containerSlots[1]
+  local sourceSlot = containerSlots[1]
 
-  if firstContainerSlot:IsEmpty() then
+  if sourceSlot:IsEmpty() then
     print("Container slot is empty, nothing to recycle")
     return
   end
 
-  local itemName = firstContainerSlot.ItemId.StaticId
+  local itemName = sourceSlot.ItemId.StaticId
   local recipeTableAccess = palDataTablesUtility:GetItemRecipeDataTableAccess(player)
   local isRecipeFound = {}
   ---@diagnostic disable-next-line: param-type-mismatch
@@ -50,16 +50,17 @@ local function RecycleItem()
   }
 
   for _, material in ipairs(materials) do
-    print("Attempting to refund material:", material.id:ToString(), "x", material.count)
     if (material.id:ToString() ~= 'None' and material.count ~= 0) then
-      print("Refunding", material.id:ToString(), "x", material.count)
-      palUtility:GetPlayerState(player):GetInventoryData():AddItem_ServerInternal(material.id, material.count, true)
-      firstContainerSlot.StackCount = 0
-      -- Sorting refreshes the container after modifying StackCount directly
-      -- Without this the item still shows in the container until reopening, even though it's not interactable
-      containerModule:RequestSortContainer()
+      local multipliedCount = material.count * sourceSlot.StackCount
+      print("Refunding", material.id:ToString(), "x", multipliedCount)
+      palUtility:GetPlayerState(player):GetInventoryData():AddItem_ServerInternal(material.id, multipliedCount, true)
     end
   end
+
+  sourceSlot.StackCount = 0
+  -- Sorting refreshes the container after modifying StackCount directly
+  -- Without this the item still shows in the container until reopen, even though it's not interactable
+  containerModule:RequestSortContainer()
 end
 
 local function RegisterModHooks(PlayerController)
