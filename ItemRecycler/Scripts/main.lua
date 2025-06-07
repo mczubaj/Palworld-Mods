@@ -5,12 +5,17 @@ local palUtility
 ---@type UPalMasterDataTablesUtility
 local palDataTablesUtility
 ---@type APlayerController
-local player
+local playerController
 
 ---@type UPalMapObjectItemContainerModule | nil
 local containerModule
 ---@type TArray<UPalItemSlot> | nil
 local containerSlots
+
+local sendLogToPlayer = function(message)
+  ---@diagnostic disable-next-line: undefined-field
+  playerController:SendLog_ToClient(1, FText(message), {})
+end
 
 local function Cleanup()
   containerSlots = nil
@@ -19,26 +24,28 @@ end
 
 local function RecycleItem()
   if not containerSlots or not containerModule then
-    print("No container found, can't recycle item")
+    ---@diagnostic disable-next-line: undefined-field
+    sendLogToPlayer("No or wrong container type is open, please use Shelf02_Iron to recycle items")
     return
   end
 
   local sourceSlot = containerSlots[1]
 
   if not sourceSlot or sourceSlot:IsEmpty() then
-    print("Container slot is empty, nothing to recycle")
+    ---@diagnostic disable-next-line: undefined-field
+    sendLogToPlayer("Shelf02_Iron is empty, put an item into the container first to recycle it")
     return
   end
 
   local itemName = sourceSlot.ItemId.StaticId
-  local recipeTableAccess = palDataTablesUtility:GetItemRecipeDataTableAccess(player)
+  local recipeTableAccess = palDataTablesUtility:GetItemRecipeDataTableAccess(playerController.Pawn)
   local isRecipeFound = {}
   ---@diagnostic disable-next-line: param-type-mismatch
   local recipe = recipeTableAccess:BP_FindRow(itemName, isRecipeFound)
 
   if not isRecipeFound.bResult then
-    -- TODO: Inform the player item has no recipe
-    print("Recipe not found for item:", itemName:ToString())
+    ---@diagnostic disable-next-line: undefined-field
+    sendLogToPlayer(itemName:ToString() .. " doesn't have a recipe, can't recycle it!")
     return
   end
 
@@ -52,11 +59,14 @@ local function RecycleItem()
     { id = recipe.Material5_Id, count = recipe.Material5_Count },
   }
 
+  ---@diagnostic disable-next-line: undefined-field
+  sendLogToPlayer("Recycling " .. sourceSlot.StackCount .. " x " .. itemName:ToString())
+
   for _, material in ipairs(recipeMaterials) do
     if (material.id:ToString() ~= 'None' and material.count ~= 0) then
       local actualCount = math.ceil(material.count * refundRatio)
-      print("Refunding", material.id:ToString(), "x", actualCount)
-      palUtility:GetPlayerState(player):GetInventoryData():AddItem_ServerInternal(material.id, actualCount, true)
+      palUtility:GetPlayerState(playerController.Pawn):GetInventoryData():AddItem_ServerInternal(material.id, actualCount,
+        true)
     end
   end
 
@@ -70,8 +80,8 @@ local function RegisterModHooks(PlayerController)
   if isHooked then return end
   isHooked = true
 
-  ---@type APlayerController
-  player = PlayerController:get().Pawn
+  ---@type APalPlayerController
+  playerController = PlayerController:get()
   ---@type UPalUtility
   ---@diagnostic disable-next-line: assign-type-mismatch
   palUtility = StaticFindObject("/Script/Pal.Default__PalUtility")
