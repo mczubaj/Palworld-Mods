@@ -14,7 +14,18 @@ local containerModule
 ---@type TArray<UPalItemSlot> | nil
 local containerSlots
 
+local TryGetPlayerController = function()
+  if not playerController or not playerController:IsValid() then
+    ---@diagnostic disable-next-line: cast-local-type
+    playerController = FindFirstOf("PalPlayerController")
+  end
+
+  return playerController and playerController:IsValid()
+end
+
 local sendLogToPlayer = function(message)
+  if not TryGetPlayerController() then return end
+
   ---@diagnostic disable-next-line: undefined-field
   playerController:SendLog_ToClient(1, FText(message), {})
 end
@@ -39,6 +50,8 @@ local function RecycleItem()
     sendLogToPlayer(config.RECYCLING_CONTAINER_NAME .. " is empty, put an item into the container first to recycle it")
     return
   end
+
+  if not TryGetPlayerController() then return end
 
   local itemName = sourceSlot.ItemId.StaticId
   local recipeTableAccess = palDataTablesUtility:GetItemRecipeDataTableAccess(playerController.Pawn)
