@@ -9,7 +9,7 @@
     "WorkBench_SkillCard": {
       "MapObjectId": "WorkBench_SkillCard",
       "TypeA": "EPalBuildObjectTypeA::Product",
-      "RedialIndex": 30,
+      "RedialIndex": 35,
       "TypeB": "EPalBuildObjectTypeB::Prod_Craft",
       "Rank": 1,
       "BuildCapacity": 0,
