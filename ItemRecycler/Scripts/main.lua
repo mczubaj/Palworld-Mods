@@ -81,7 +81,7 @@ local function RecycleItem()
     if (material.id:ToString() ~= 'None' and material.count ~= 0) then
       local actualCount = math.ceil(material.count * refundRatio)
       palUtility:GetPlayerState(playerController.Pawn):GetInventoryData():AddItem_ServerInternal(material.id, actualCount,
-        true)
+        true, 0)
     end
   end
 
