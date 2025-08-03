@@ -14,7 +14,7 @@
       "RequireTechnology": "None",
       "RequireResearchId": "None",
       "IsBossTechnology": true,
-      "LevelCap": 19,
+      "LevelCap": 18,
       "Tier": 0,
       "Cost": 2
     },
@@ -43,7 +43,7 @@
       "RequireDefeatTowerBoss": "EPalBossType::None",
       "RequireTechnology": "Accessory_Nonkilling",
       "RequireResearchId": "None",
-      "IsBossTechnology": true,
+      "IsBossTechnology": false,
       "LevelCap": 47,
       "Tier": 0,
       "Cost": 4
