@@ -1,0 +1,35 @@
+{
+  "Accessory_AerialAttack": {
+    "OverrideNameMsgID": "Aerial Attack Pendant",
+    "OverrideDescMsgID": "An accessory that greatly raises Attack and aerial mobility.",
+    "IconTexture": "/Game/Others/InventoryItemIcon/Texture/T_itemicon_Accessory_AT_1.T_itemicon_Accessory_AT_1",
+    "Type": "Armor",
+    "TypeA": "Accessory",
+    "TypeB": "Accessory",
+    "Rank": 6,
+    "Rarity": 4,
+    "MaxStackCount": 1,
+    "SortID": 2013,
+    "Weight": 2.0,
+    "DefenseValue": 0,
+    "HPValue": 0,
+    "ShieldValue": 0,
+    "Durability": 0.0,
+    "PassiveSkill": "Attack_ACC_up3",
+    "PassiveSkill2": "JumpPower_Increase",
+    "PassiveSkill3": "JumpCount_Increase3",
+    "PassiveSkill4": "AirDash_4",
+    "Recipe": {
+      "Product_Count": 1,
+      "WorkAmount": 180000.0,
+      "Material1_Id": "Accessory_AT_3",
+      "Material1_Count": 1,
+      "Material2_Id": "Accessory_JumpPower_Increase",
+      "Material2_Count": 1,
+      "Material3_Id": "Accessory_JumpCount_Increase3",
+      "Material3_Count": 1,
+      "Material4_Id": "Accessory_AirDash4",
+      "Material4_Count": 1
+    }
+  }
+}
