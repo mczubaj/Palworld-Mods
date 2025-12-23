@@ -47,7 +47,8 @@ local function StoreAll()
   local playerInventorySlots, targetStorageContainerId = GetContainerParams()
 
   for index = 1, #playerInventorySlots do
-    playerInventoryWidget:MoveItem(1, playerInventorySlots[index], targetStorageContainerId)
+    local slotStackCount = playerInventorySlots[index].StackCount
+    playerInventoryWidget:MoveItem(slotStackCount, playerInventorySlots[index], targetStorageContainerId)
   end
 end
 
