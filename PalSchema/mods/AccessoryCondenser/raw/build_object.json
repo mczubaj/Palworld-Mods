@@ -11,6 +11,7 @@
       "TypeA": "EPalBuildObjectTypeA::Product",
       "RedialIndex": 35,
       "TypeB": "EPalBuildObjectTypeB::Prod_Craft",
+      "TypeUIDisplay": "EPalBuildObjectTypeForUIDisplay::Product_Repair",
       "Rank": 1,
       "BuildCapacity": 0,
       "RequiredBuildWorkAmount": 3000.0,
